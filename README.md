@@ -1,6 +1,6 @@
 # Emma Poh — Data Analytics Portfolio
 
-**[View the live site →](https://emmabiee.github.io)**
+[![View Live Site](https://img.shields.io/badge/🌐_View_Live_Site-emmabiee.github.io-2563eb?style=for-the-badge)](https://emmabiee.github.io)
 
 Personal portfolio showcasing data analytics projects, technical skills, and career transition from banking to data.
 
@@ -8,7 +8,7 @@ Personal portfolio showcasing data analytics projects, technical skills, and car
 
 | Project | Description | Links |
 |---------|-------------|-------|
-| **Banking Fraud Detection** | Fraud risk scoring model with ROC-AUC > 0.95 using transaction + clickstream data | [Details](https://emmabiee.github.io/projects/fraud-detection.html) · [Repo](https://github.com/emmabiee/banking-fraud-detection) |
+| **Banking Fraud Detection** | Fraud risk scoring model with ROC-AUC > 0.95 using transaction + clickstream data | [Details](https://emmabiee.github.io/projects/fraud-detection.html) · [Dashboard](https://emmabiee.github.io/projects/fraud-dashboard.html) · [Repo](https://github.com/emmabiee/banking-fraud-detection) |
 | **HDB Resale Price Prediction** | LightGBM model (R² = 0.88) predicting Singapore flat prices across 150K+ transactions | [Details](https://emmabiee.github.io/projects/hdb-resale.html) · [Calculator](https://hdb-resale-price-predictor-emmabiee.streamlit.app/) · [Repo](https://github.com/emmabiee/hdb-resale-price-predictor) |
 
 ## Tech Stack
