@@ -6,9 +6,10 @@ Personal portfolio showcasing data analytics projects, technical skills, and car
 
 ## Featured Projects
 
-[![Banking Fraud Detection — ROC-AUC > 0.95 · Details · Dashboard · Repo](https://img.shields.io/badge/🔒_Banking_Fraud_Detection-ROC--AUC_>_0.95_·_Details_·_Dashboard_·_Repo-2563eb?style=for-the-badge)](https://emmabiee.github.io/projects/fraud-detection.html)
-
-[![HDB Resale Price Prediction — R² = 0.88 · Details · Calculator · Repo](https://img.shields.io/badge/🏠_HDB_Resale_Price_Prediction-R²_=_0.88_·_Details_·_Calculator_·_Repo-059669?style=for-the-badge)](https://emmabiee.github.io/projects/hdb-resale.html)
+| Project | Description | Links |
+|---------|-------------|-------|
+| **Banking Fraud Detection** | Fraud risk scoring model with ROC-AUC > 0.95 using transaction + clickstream data | [Details](https://emmabiee.github.io/projects/fraud-detection.html) · [Dashboard](https://emmabiee.github.io/projects/fraud-dashboard.html) · [Repo](https://github.com/emmabiee/banking-fraud-detection) |
+| **HDB Resale Price Prediction** | LightGBM model (R² = 0.88) predicting Singapore flat prices across 150K+ transactions | [Details](https://emmabiee.github.io/projects/hdb-resale.html) · [Calculator](https://hdb-resale-price-predictor-emmabiee.streamlit.app/) · [Repo](https://github.com/emmabiee/hdb-resale-price-predictor) |
 
 ## Tech Stack
 
