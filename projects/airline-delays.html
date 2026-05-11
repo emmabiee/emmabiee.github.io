@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAA Airline Delays Analysis — Emma Poh</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #1a1a2e; background: #fafafa; line-height: 1.7; font-size: 16px;
+        }
+        a { color: #2563eb; text-decoration: none; transition: color 0.2s; }
+        a:hover { color: #1d4ed8; }
+
+        /* Navigation */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e5e7eb; z-index: 100; padding: 16px 0;
+        }
+        nav .container { display: flex; justify-content: space-between; align-items: center; }
+        nav .logo { font-weight: 700; font-size: 1.1rem; color: #1a1a2e; }
+        nav .nav-links { display: flex; gap: 32px; list-style: none; }
+        nav .nav-links a { color: #64748b; font-size: 0.9rem; font-weight: 500; }
+        nav .nav-links a:hover { color: #1a1a2e; }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+        /* Hero — navy to amber gradient */
+        .project-hero {
+            padding: 120px 0 60px;
+            background: linear-gradient(135deg, #1a237e, #283593);
+            color: white;
+        }
+        .project-hero .breadcrumb {
+            font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-bottom: 16px;
+        }
+        .project-hero .breadcrumb a { color: rgba(255,255,255,0.8); }
+        .project-hero h1 {
+            font-size: 2.5rem; font-weight: 700; margin-bottom: 16px;
+            letter-spacing: -0.03em;
+        }
+        .project-hero .tagline { font-size: 1.15rem; color: rgba(255,255,255,0.85); max-width: 700px; }
+        .project-meta {
+            display: flex; gap: 24px; margin-top: 24px; flex-wrap: wrap;
+        }
+        .meta-item {
+            padding: 8px 16px; background: rgba(255,255,255,0.1);
+            border-radius: 8px; font-size: 0.85rem;
+        }
+        .meta-item .label { color: rgba(255,255,255,0.5); }
+        .meta-item .value { color: white; font-weight: 600; }
+
+        /* Content */
+        .project-content { padding: 60px 0; }
+        .project-content h2 {
+            font-size: 1.6rem; font-weight: 700; color: #0f172a;
+            margin: 48px 0 16px; letter-spacing: -0.02em;
+            padding-bottom: 8px; border-bottom: 2px solid #e5e7eb;
+        }
+        .project-content h2:first-child { margin-top: 0; }
+        .project-content h3 {
+            font-size: 1.15rem; font-weight: 600; color: #1e293b;
+            margin: 32px 0 12px;
+        }
+        .project-content p { color: #374151; margin-bottom: 16px; }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+            margin: 24px 0;
+        }
+        .stat-card {
+            background: white; border: 1px solid #e5e7eb; border-radius: 10px;
+            padding: 20px; text-align: center;
+        }
+        .stat-card .number {
+            font-size: 1.8rem; font-weight: 700; color: #1a237e;
+            line-height: 1.2;
+        }
+        .stat-card .desc {
+            font-size: 0.8rem; color: #64748b; margin-top: 4px;
+        }
+
+        /* Findings */
+        .finding {
+            background: white; border: 1px solid #e5e7eb; border-radius: 10px;
+            padding: 24px; margin: 16px 0;
+        }
+        .finding .finding-header {
+            font-weight: 600; color: #0f172a; margin-bottom: 8px; font-size: 1.05rem;
+        }
+        .finding p { color: #475569; margin-bottom: 0; }
+        .finding .highlight {
+            color: #1a237e; font-weight: 700;
+        }
+
+        /* Method Steps */
+        .method-steps {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+            margin: 24px 0;
+        }
+        .method-step {
+            background: white; border: 1px solid #e5e7eb; border-radius: 10px;
+            padding: 20px;
+        }
+        .method-step .step-num {
+            display: inline-block; width: 28px; height: 28px; line-height: 28px;
+            text-align: center; background: #1a237e; color: white; border-radius: 50%;
+            font-size: 0.8rem; font-weight: 700; margin-bottom: 8px;
+        }
+        .method-step .step-title { font-weight: 600; color: #0f172a; margin-bottom: 4px; }
+        .method-step .step-desc { font-size: 0.9rem; color: #64748b; }
+
+        /* Tech Tags */
+        .tech-tags { display: flex; flex-wrap: wrap; gap: 10px; margin: 24px 0; }
+        .tech-tag {
+            padding: 6px 16px; background: #f1f5f9; border-radius: 100px;
+            font-size: 0.85rem; color: #475569; font-weight: 500;
+        }
+
+        /* CTA */
+        .project-cta {
+            background: #f1f5f9; padding: 48px 0; text-align: center;
+        }
+        .project-cta h2 { border: none; margin-bottom: 16px; }
+        .project-cta p { color: #64748b; margin-bottom: 24px; }
+        .cta-buttons { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+        .btn {
+            display: inline-block; padding: 12px 28px; border-radius: 8px;
+            font-weight: 600; font-size: 0.95rem; transition: all 0.2s;
+        }
+        .btn-primary { background: #1a237e; color: white; }
+        .btn-primary:hover { background: #283593; color: white; }
+        .btn-outline { background: white; color: #1a237e; border: 2px solid #1a237e; }
+        .btn-outline:hover { background: #1a237e; color: white; }
+
+        /* Learning */
+        .learning-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0;
+        }
+        .learning-card {
+            background: white; border: 1px solid #e5e7eb; border-radius: 10px;
+            padding: 20px;
+        }
+        .learning-card h4 { font-weight: 600; color: #0f172a; margin-bottom: 6px; }
+        .learning-card p { font-size: 0.9rem; color: #64748b; margin: 0; }
+
+        /* DAX Block */
+        .dax-highlights {
+            background: #0f172a; border-radius: 10px; padding: 24px;
+            margin: 24px 0; overflow-x: auto;
+        }
+        .dax-highlights code {
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem; color: #c7d2fe; line-height: 1.6;
+            white-space: pre;
+        }
+        .dax-highlights .keyword { color: #818cf8; }
+        .dax-highlights .function { color: #fbbf24; }
+        .dax-highlights .comment { color: #64748b; }
+
+        footer {
+            background: #0f172a; padding: 24px 0; text-align: center;
+            color: #64748b; font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .project-hero h1 { font-size: 1.8rem; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .method-steps { grid-template-columns: 1fr; }
+            .learning-grid { grid-template-columns: 1fr; }
+            .project-meta { gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="container">
+            <a href="../index.html" class="logo">Emma Poh</a>
+            <ul class="nav-links">
+                <li><a href="../index.html#projects">All Projects</a></li>
+                <li><a href="https://github.com/emmabiee" target="_blank">GitHub</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Project Hero -->
+    <section class="project-hero">
+        <div class="container">
+            <div class="breadcrumb"><a href="../index.html">Portfolio</a> / Projects</div>
+            <h1>FAA Airline Delays Analysis</h1>
+            <p class="tagline">Power BI dashboard analysing 20 years of U.S. flight delay data — uncovering which causes are controllable, which carriers are worsening, and where targeted investment would reduce the most passenger disruption.</p>
+            <div class="project-meta">
+                <div class="meta-item">
+                    <span class="label">Type</span><br>
+                    <span class="value">GA Immersive — Power BI Lab</span>
+                </div>
+                <div class="meta-item">
+                    <span class="label">Dataset</span><br>
+                    <span class="value">318K records (2003–2022)</span>
+                </div>
+                <div class="meta-item">
+                    <span class="label">Focus Year</span><br>
+                    <span class="value">2022 (2.7M flights)</span>
+                </div>
+                <div class="meta-item">
+                    <span class="label">Tools</span><br>
+                    <span class="value">Power BI, DAX, Python</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Content -->
+    <div class="project-content">
+        <div class="container">
+
+            <h2>The Problem</h2>
+            <p>Flight delays cost the U.S. airline industry billions annually and affect millions of passengers, but not all delays are created equal. Some are within carrier control (crew scheduling, maintenance, turnaround processes), while others stem from external factors (weather, air traffic control, security). Without separating these categories, stakeholders can't prioritise the interventions that would actually reduce disruption. The goal: build a multi-page Power BI dashboard that surfaces the most actionable patterns from 20 years of Bureau of Transportation Statistics data.</p>
+
+            <h2>Results at a Glance</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="number">549,942</div>
+                    <div class="desc">Flights Delayed (2022)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">20.1%</div>
+                    <div class="desc">Overall Delay Rate</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">66.8 min</div>
+                    <div class="desc">Avg Delay Duration</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">72%</div>
+                    <div class="desc">Controllable Causes</div>
+                </div>
+            </div>
+
+            <h2>Key Findings</h2>
+
+            <div class="finding">
+                <div class="finding-header"><span class="highlight">72% of delays are within industry control</span> — not weather</div>
+                <p>Carrier operations (38%) and late-arriving aircraft (33%) together account for nearly three-quarters of all delays. Weather and security — the causes airlines cannot control — make up just 4%. This means the majority of passenger disruption is addressable through better scheduling, maintenance, and turnaround processes.</p>
+            </div>
+
+            <div class="finding">
+                <div class="finding-header">Small regional airports face the <span class="highlight">worst delays per flight</span></div>
+                <p>Valdosta Regional averages over 4 hours per delayed flight — but handles very few flights. Low-traffic airports lack schedule buffers, so a single delayed inbound cascades through the day. Major hubs like ATL and DFW maintain shorter average delays through operational resilience and fleet redundancy.</p>
+            </div>
+
+            <div class="finding">
+                <div class="finding-header">Delays have <span class="highlight">worsened across most carriers since 2020</span></div>
+                <p>The post-pandemic traffic recovery outpaced staffing and fleet readiness. JetBlue's average delay rose 35% (60 to 81 minutes) from 2020 to 2022. SkyWest consistently sits above 80 minutes. Only Southwest kept delays relatively stable despite carrying the highest absolute delay count.</p>
+            </div>
+
+            <div class="finding">
+                <div class="finding-header"><span class="highlight">May leads weather delays</span> — summer storms outpace winter</div>
+                <p>Convective storms and severe weather in late spring create more delays than winter snow events. This counter-intuitive finding suggests weather resilience investments should target the May–July window, not just the winter months most people associate with travel disruptions.</p>
+            </div>
+
+            <h2>Dashboard Design</h2>
+            <div class="method-steps">
+                <div class="method-step">
+                    <div class="step-num">1</div>
+                    <div class="step-title">Overview Page</div>
+                    <div class="step-desc">Executive summary, KPI cards (delay count, rate, avg duration, controllable %), top airports by severity, and delay cause breakdown with controllable vs external grouping.</div>
+                </div>
+                <div class="method-step">
+                    <div class="step-num">2</div>
+                    <div class="step-title">Airlines & States</div>
+                    <div class="step-desc">Dual-axis view: airlines ranked by volume vs severity. State-level analysis separating count (traffic-driven) from average delay (severity-driven). Weather month seasonality.</div>
+                </div>
+                <div class="method-step">
+                    <div class="step-num">3</div>
+                    <div class="step-title">Trends</div>
+                    <div class="step-desc">Multi-line trend chart showing airline average delays 2020–2022. Year-over-year state comparison with slicer for 2018–2022 period.</div>
+                </div>
+                <div class="method-step">
+                    <div class="step-num">4</div>
+                    <div class="step-title">Recommendations</div>
+                    <div class="step-desc">Six evidence-based recommendations tied back to the data — from carrier operations investment to regional airport monitoring and seasonal weather resilience.</div>
+                </div>
+            </div>
+
+            <h2>Power BI Techniques</h2>
+            <p>The dashboard uses a range of Power BI features to deliver interactive, insight-driven analysis:</p>
+            <div class="dax-highlights">
+                <code><span class="comment">-- Controllable delay percentage (DAX measure)</span>
+<span class="function">Controllable %</span> =
+<span class="keyword">DIVIDE</span>(
+    <span class="keyword">SUM</span>( delays[carrier_ct] ) + <span class="keyword">SUM</span>( delays[late_aircraft_ct] ),
+    <span class="keyword">SUM</span>( delays[arr_del15] ),
+    0
+)
+
+<span class="comment">-- Dynamic title based on slicer selection</span>
+<span class="function">Chart Title</span> =
+<span class="keyword">"Top 5 States — "</span> &amp;
+<span class="keyword">SELECTEDVALUE</span>( delays[year], <span class="keyword">"All Years"</span> )</code>
+            </div>
+
+            <p>Key techniques include calculated measures for controllable vs external delay ratios, dynamic titles driven by slicer selections, conditional formatting on KPI cards, bookmarks for page navigation, and drill-through from state-level to airport-level detail.</p>
+
+            <h2>Technical Stack</h2>
+            <div class="tech-tags">
+                <span class="tech-tag">Power BI Desktop</span>
+                <span class="tech-tag">DAX</span>
+                <span class="tech-tag">Power Query (M)</span>
+                <span class="tech-tag">Python (pandas)</span>
+                <span class="tech-tag">Bureau of Transportation Statistics</span>
+            </div>
+
+            <h2>What I Learned</h2>
+            <div class="learning-grid">
+                <div class="learning-card">
+                    <h4>Insight-First Design</h4>
+                    <p>Chart titles should tell the story, not describe the chart. "72% of delays are controllable" communicates more than "Delay Causes Breakdown." This principle transformed the dashboard from a data display into a decision tool.</p>
+                </div>
+                <div class="learning-card">
+                    <h4>Controllable vs External Framing</h4>
+                    <p>Grouping delay causes into actionable categories changed the entire narrative. Instead of five separate slices, stakeholders see one clear message: most delays are fixable through operational investment.</p>
+                </div>
+                <div class="learning-card">
+                    <h4>Volume vs Severity Trap</h4>
+                    <p>Southwest leads in total delays because it flies the most routes — not because it's the worst performer. Presenting count and average side-by-side prevents misleading conclusions from volume-driven rankings.</p>
+                </div>
+                <div class="learning-card">
+                    <h4>DAX for Dynamic Storytelling</h4>
+                    <p>Using DAX measures for calculated KPIs, dynamic titles, and conditional formatting turned static visuals into an interactive narrative that adapts to the user's exploration path.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- CTA -->
+    <section class="project-cta">
+        <div class="container">
+            <h2>Explore the Analysis</h2>
+            <p>View the interactive web dashboard or return to the full portfolio.</p>
+            <div class="cta-buttons">
+                <a href="airline-delays-dashboard.html" class="btn btn-primary">View Dashboard</a>
+                <a href="../index.html" class="btn btn-outline">Back to Portfolio</a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>Emma Poh — Data Analytics Portfolio, 2026</p>
+        </div>
+    </footer>
+
+</body>
+</html>

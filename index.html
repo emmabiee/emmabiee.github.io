@@ -147,6 +147,11 @@
         }
         .project-card.ecommerce .card-image .emoji-icon { opacity: 0.8; }
         .project-card.ecommerce .tag { background: #e0e7ff; color: #312e81; }
+        .project-card.airline .card-image {
+            background: linear-gradient(135deg, #1a237e, #283593);
+        }
+        .project-card.airline .card-image .emoji-icon { opacity: 0.8; }
+        .project-card.airline .tag { background: #e8eaf6; color: #1a237e; }
         .card-body { padding: 24px; }
         .card-body h3 {
             font-size: 1.2rem; font-weight: 600; margin-bottom: 8px;
@@ -366,20 +371,22 @@
                     </div>
                 </div>
 
-                <!-- Project 4: Placeholder -->
-                <div class="project-card">
+                <!-- Project 4: FAA Airline Delays -->
+                <div class="project-card airline">
                     <div class="card-image">
-                        <span class="emoji-icon">&#127919;</span>
+                        <span class="emoji-icon">&#9992;</span>
                     </div>
                     <div class="card-body">
-                        <h3>Project 4 Title</h3>
-                        <p>Brief description of your fourth project. Personal project or GA coursework.</p>
+                        <h3>FAA Airline Delays Analysis</h3>
+                        <p>Power BI dashboard analysing 2.7M U.S. flights in 2022 — revealing that 72% of delays are within industry control, not weather. Includes trend analysis, state rankings, and actionable recommendations.</p>
                         <div class="card-tags">
+                            <span class="tag">Power BI</span>
+                            <span class="tag">DAX</span>
                             <span class="tag">Python</span>
-                            <span class="tag">EDA</span>
                         </div>
                         <div class="card-links">
-                            <span class="coming-soon">Coming soon</span>
+                            <a href="projects/airline-delays.html">&#128196; Details</a>
+                            <a href="projects/airline-delays-dashboard.html">&#128202; Dashboard</a>
                         </div>
                     </div>
                 </div>
@@ -418,6 +425,7 @@
                     <ul class="skill-list">
                         <li>Matplotlib / Seaborn</li>
                         <li>Tableau Public</li>
+                        <li>Power BI (DAX, Power Query)</li>
                     </ul>
                 </div>
                 <div class="skill-category">
