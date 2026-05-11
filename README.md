@@ -12,6 +12,7 @@ Personal portfolio showcasing data analytics projects, technical skills, and car
 | **HDB Resale Price Prediction** | LightGBM model (R² = 0.88) predicting Singapore flat prices across 150K+ transactions | [Details](https://emmabiee.github.io/projects/hdb-resale.html) · [Calculator](https://hdb-resale-price-predictor-emmabiee.streamlit.app/) · [Repo](https://github.com/emmabiee/hdb-resale-price-predictor) |
 | **UK Gender Pay Gap Analysis** | SQL analysis of 10,174 UK employers — 9.8% median gap driven by workforce composition, not discrimination | [Details](https://emmabiee.github.io/projects/gender-pay-gap.html) · [Dashboard](https://emmabiee.github.io/projects/gender-pay-gap-dashboard.html) · [Repo](https://github.com/emmabiee/gender-pay-gap) |
 | **FAA Airline Delays Analysis** | Power BI dashboard analysing 2.7M U.S. flights — 72% of delays are controllable, not weather | [Details](https://emmabiee.github.io/projects/airline-delays.html) · [Dashboard](https://emmabiee.github.io/projects/airline-delays-dashboard.html) |
+| **US Presidential Elections** | Tableau analysis of 94K+ county-level voting records (2000-2024) — state loyalty, swing dynamics, 2024 realignment | [Details](https://emmabiee.github.io/projects/us-elections.html) · [Dashboard](https://emmabiee.github.io/projects/elections-dashboard.html) · [Repo](https://github.com/emmabiee/us-presidential-elections) |
 
 ## Tech Stack
 

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>US Presidential Elections Analysis — Emma Poh</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #1a1a2e; background: #fafafa; line-height: 1.7; font-size: 16px;
+        }
+        a { color: #2563eb; text-decoration: none; transition: color 0.2s; }
+        a:hover { color: #1d4ed8; }
+
+        /* Navigation */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e5e7eb; z-index: 100; padding: 16px 0;
+        }
+        nav .container { display: flex; justify-content: space-between; align-items: center; }
+        nav .logo { font-weight: 700; font-size: 1.1rem; color: #1a1a2e; }
+        nav .nav-links { display: flex; gap: 32px; list-style: none; }
+        nav .nav-links a { color: #64748b; font-size: 0.9rem; font-weight: 500; }
+        nav .nav-links a:hover { color: #1a1a2e; }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+        /* Hero — navy to dark red gradient */
+        .project-hero {
+            padding: 120px 0 60px;
+            background: linear-gradient(135deg, #1a237e, #B71C1C);
+            color: white;
+        }
+        .project-hero .breadcrumb {
+            font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-bottom: 16px;
+        }
+        .project-hero .breadcrumb a { color: rgba(255,255,255,0.8); }
+        .project-hero h1 {
+            font-size: 2.5rem; font-weight: 700; margin-bottom: 16px;
+            letter-spacing: -0.03em;
+        }
+        .project-hero .tagline { font-size: 1.15rem; color: rgba(255,255,255,0.85); max-width: 700px; }
+        .project-meta {
+            display: flex; gap: 24px; margin-top: 24px; flex-wrap: wrap;
+        }
+        .meta-item {
+            padding: 8px 16px; background: rgba(255,255,255,0.1);
+            border-radius: 8px; font-size: 0.85rem;
+        }
+        .meta-item .label { color: rgba(255,255,255,0.5); }
+        .meta-item .value { color: white; font-weight: 600; }
+
+        /* Content */
+        .project-content { padding: 60px 0; }
+        .project-content h2 {
+            font-size: 1.6rem; font-weight: 700; color: #0f172a;
+            margin: 48px 0 16px; letter-spacing: -0.02em;
+            padding-bottom: 8px; border-bottom: 2px solid #e5e7eb;
+        }
+        .project-content h2:first-child { margin-top: 0; }
+        .project-content h3 {
+            font-size: 1.15rem; font-weight: 600; color: #1e293b;
+            margin: 32px 0 12px;
+        }
+        .project-content p { color: #374151; margin-bottom: 16px; }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+            margin: 24px 0;
+        }
+        .stat-card {
+            background: white; border: 1px solid #e5e7eb; border-radius: 10px;
+            padding: 20px; text-align: center;
+        }
+        .stat-card .number {
+            font-size: 1.8rem; font-weight: 700; color: #1a237e;
+            line-height: 1.2;
+        }
+        .stat-card .desc {
+            font-size: 0.8rem; color: #64748b; margin-top: 4px;
+        }
+
+        /* Findings */
+        .finding {
+            background: white; border: 1px solid #e5e7eb; border-radius: 10px;
+            padding: 24px; margin: 16px 0;
+        }
+        .finding .finding-header {
+            font-weight: 600; color: #0f172a; margin-bottom: 8px; font-size: 1.05rem;
+        }
+        .finding p { color: #475569; margin-bottom: 0; }
+        .finding .highlight {
+            color: #1a237e; font-weight: 700;
+        }
+
+        /* Method Steps */
+        .method-steps {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+            margin: 24px 0;
+        }
+        .method-step {
+            background: white; border: 1px solid #e5e7eb; border-radius: 10px;
+            padding: 20px;
+        }
+        .method-step .step-num {
+            display: inline-block; width: 28px; height: 28px; line-height: 28px;
+            text-align: center; background: #1a237e; color: white; border-radius: 50%;
+            font-size: 0.8rem; font-weight: 700; margin-bottom: 8px;
+        }
+        .method-step .step-title { font-weight: 600; color: #0f172a; margin-bottom: 4px; }
+        .method-step .step-desc { font-size: 0.9rem; color: #64748b; }
+
+        /* Tech Tags */
+        .tech-tags { display: flex; flex-wrap: wrap; gap: 10px; margin: 24px 0; }
+        .tech-tag {
+            padding: 6px 16px; background: #f1f5f9; border-radius: 100px;
+            font-size: 0.85rem; color: #475569; font-weight: 500;
+        }
+
+        /* CTA */
+        .project-cta {
+            background: #f1f5f9; padding: 48px 0; text-align: center;
+        }
+        .project-cta h2 { border: none; margin-bottom: 16px; }
+        .project-cta p { color: #64748b; margin-bottom: 24px; }
+        .cta-buttons { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+        .btn {
+            display: inline-block; padding: 12px 28px; border-radius: 8px;
+            font-weight: 600; font-size: 0.95rem; transition: all 0.2s;
+        }
+        .btn-primary { background: #1a237e; color: white; }
+        .btn-primary:hover { background: #283593; color: white; }
+        .btn-outline { background: white; color: #1a237e; border: 2px solid #1a237e; }
+        .btn-outline:hover { background: #1a237e; color: white; }
+
+        /* Learning */
+        .learning-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0;
+        }
+        .learning-card {
+            background: white; border: 1px solid #e5e7eb; border-radius: 10px;
+            padding: 20px;
+        }
+        .learning-card h4 { font-weight: 600; color: #0f172a; margin-bottom: 6px; }
+        .learning-card p { font-size: 0.9rem; color: #64748b; margin: 0; }
+
+        /* DAX Block */
+        .dax-highlights {
+            background: #0f172a; border-radius: 10px; padding: 24px;
+            margin: 24px 0; overflow-x: auto;
+        }
+        .dax-highlights code {
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem; color: #c7d2fe; line-height: 1.6;
+            white-space: pre;
+        }
+        .dax-highlights .keyword { color: #818cf8; }
+        .dax-highlights .function { color: #fbbf24; }
+        .dax-highlights .comment { color: #64748b; }
+
+        footer {
+            background: #0f172a; padding: 24px 0; text-align: center;
+            color: #64748b; font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .project-hero h1 { font-size: 1.8rem; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .method-steps { grid-template-columns: 1fr; }
+            .learning-grid { grid-template-columns: 1fr; }
+            .project-meta { gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="container">
+            <a href="../index.html" class="logo">Emma Poh</a>
+            <ul class="nav-links">
+                <li><a href="../index.html#projects">All Projects</a></li>
+                <li><a href="https://github.com/emmabiee" target="_blank">GitHub</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Project Hero -->
+    <section class="project-hero">
+        <div class="container">
+            <div class="breadcrumb"><a href="../index.html">Portfolio</a> / Projects</div>
+            <h1>US Presidential Elections Analysis</h1>
+            <p class="tagline">County-level analysis of 94,000+ voting records across 7 elections, exploring state loyalty, swing state dynamics, and the geographic realignment of American politics.</p>
+            <div class="project-meta">
+                <div class="meta-item">
+                    <span class="label">Tool</span><br>
+                    <span class="value">Tableau</span>
+                </div>
+                <div class="meta-item">
+                    <span class="label">Dataset</span><br>
+                    <span class="value">94,409 records</span>
+                </div>
+                <div class="meta-item">
+                    <span class="label">Period</span><br>
+                    <span class="value">2000–2024</span>
+                </div>
+                <div class="meta-item">
+                    <span class="label">Type</span><br>
+                    <span class="value">Exploratory Analysis</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Content -->
+    <div class="project-content">
+        <div class="container">
+
+            <h2>Key Findings</h2>
+
+            <div class="finding">
+                <div class="finding-header">&#128202; <span class="highlight">2024 Broke the Popular Vote Pattern</span></div>
+                <p>Republicans won both the popular vote (91.4M) and Electoral College — the first time since 2004. Democrat vote share dropped from 52.3% to 48.4%.</p>
+            </div>
+
+            <div class="finding">
+                <div class="finding-header">&#128506; <span class="highlight">The Blue Wall Crumbled</span></div>
+                <p>Pennsylvania, Michigan, and Wisconsin all flipped Republican in 2024 after going Democratic in 2020 — these three states were the decisive battlegrounds.</p>
+            </div>
+
+            <div class="finding">
+                <div class="finding-header">&#128200; <span class="highlight">Turnout Nearly Doubled in 24 Years</span></div>
+                <p>Total votes grew from 105M in 2000 to 199M in 2024, an 89% increase driven by both parties — Republicans alone gained 41M votes over the period.</p>
+            </div>
+
+            <div class="finding">
+                <div class="finding-header">&#128205; <span class="highlight">102 Counties Shifted Right in 2024</span></div>
+                <p>Between 2020 and 2024, 102 counties flipped from Democrat to Republican while only 15 went the other direction — a 7-to-1 ratio signalling broad geographic realignment.</p>
+            </div>
+
+            <h2>Analysis Approach</h2>
+            <div class="method-steps">
+                <div class="method-step">
+                    <div class="step-num">1</div>
+                    <div class="step-title">Data Sourcing</div>
+                    <div class="step-desc">Downloaded MIT Election Data + Science Lab's county-level presidential returns (2000–2024), containing candidate-party-county vote counts and FIPS codes.</div>
+                </div>
+                <div class="method-step">
+                    <div class="step-num">2</div>
+                    <div class="step-title">Calculated Fields</div>
+                    <div class="step-desc">Built Tableau calculated fields for Democrat Vote %, Republican Vote %, Winning Party per state/year, and Top N ranking filters.</div>
+                </div>
+                <div class="method-step">
+                    <div class="step-num">3</div>
+                    <div class="step-title">Geographic Mapping</div>
+                    <div class="step-desc">Created county and state choropleth maps showing winning party, with parameters controlling the election year displayed.</div>
+                </div>
+                <div class="method-step">
+                    <div class="step-num">4</div>
+                    <div class="step-title">Loyalty Analysis</div>
+                    <div class="step-desc">Scored states by how consistently they voted for the same party across all 7 elections — identifying 36 loyal states and 15 swing states.</div>
+                </div>
+                <div class="method-step">
+                    <div class="step-num">5</div>
+                    <div class="step-title">Trend Analysis</div>
+                    <div class="step-desc">Tracked vote share margins over time for 9 key battleground states, revealing long-term shifts like Florida's move from pure toss-up to solidly Republican.</div>
+                </div>
+                <div class="method-step">
+                    <div class="step-num">6</div>
+                    <div class="step-title">Dashboard Assembly</div>
+                    <div class="step-desc">Combined 14 worksheets into 2 interactive dashboards and 1 data story, with parameter actions for dynamic filtering.</div>
+                </div>
+            </div>
+
+            <h2>Tableau Calculated Fields</h2>
+            <p>Key calculated fields used to drive the analysis and interactivity:</p>
+            <div class="dax-highlights">
+                <code><span class="comment">// Winning Party per State per Year</span>
+<span class="keyword">IF</span> <span class="function">SUM</span>([Democrat Votes]) &gt; <span class="function">SUM</span>([Republican Votes])
+<span class="keyword">THEN</span> <span class="keyword">"Democrat"</span>
+<span class="keyword">ELSE</span> <span class="keyword">"Republican"</span>
+<span class="keyword">END</span>
+
+<span class="comment">// Democrat Vote %</span>
+<span class="function">SUM</span>([Democrat Votes]) / <span class="function">SUM</span>([Total Votes])
+
+<span class="comment">// Top N Rank (for dynamic filtering)</span>
+<span class="function">RANK_UNIQUE</span>(<span class="function">SUM</span>([candidatevotes]), <span class="keyword">'desc'</span>)</code>
+            </div>
+
+            <h2>What I Learned</h2>
+            <div class="learning-grid">
+                <div class="learning-card">
+                    <h4>Tableau Parameters</h4>
+                    <p>Using parameters for dynamic Top N filtering and year selection gives users control over the analysis without cluttering the view.</p>
+                </div>
+                <div class="learning-card">
+                    <h4>Geographic Storytelling</h4>
+                    <p>County-level maps reveal patterns invisible at the state level — like suburban shifts that drive statewide flips.</p>
+                </div>
+                <div class="learning-card">
+                    <h4>Data Story Format</h4>
+                    <p>Tableau's Story feature creates a guided narrative, but the web dashboard format reaches a wider audience without requiring Tableau access.</p>
+                </div>
+                <div class="learning-card">
+                    <h4>Political Data Nuance</h4>
+                    <p>Popular vote totals don't determine the winner — framing analysis around both popular vote and geographic distribution gives a more complete picture.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- CTA -->
+    <section class="project-cta">
+        <div class="container">
+            <h2>Explore the Analysis</h2>
+            <p>View the interactive dashboard or return to the full portfolio.</p>
+            <div class="cta-buttons">
+                <a href="elections-dashboard.html" class="btn btn-primary">View Dashboard</a>
+                <a href="https://github.com/emmabiee/us-presidential-elections" class="btn btn-outline" target="_blank">View on GitHub</a>
+                <a href="../index.html" class="btn btn-outline">Back to Portfolio</a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>Built by Emma Poh | Data Analyst</p>
+        </div>
+    </footer>
+
+</body>
+</html>

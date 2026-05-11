@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>US Presidential Elections Dashboard 2000-2024</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-dark: #0D1B2A;
+    --bg-card: #1B2838;
+    --bg-card-hover: #223347;
+    --dem-blue: #457B9D;
+    --rep-red: #E63946;
+    --text-primary: #FFFFFF;
+    --text-secondary: #A8B2C1;
+    --text-muted: #6B7A8D;
+    --accent-gradient: linear-gradient(90deg, #457B9D, #E63946);
+    --border-color: #2A3A4E;
+  }
+
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  .dashboard-header {
+    text-align: center;
+    padding: 2rem 1.5rem 0;
+  }
+  .dashboard-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: var(--accent-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .dashboard-header p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-top: 0.25rem;
+  }
+
+  /* Tabs */
+  .tab-nav {
+    display: flex;
+    justify-content: center;
+    gap: 0.25rem;
+    padding: 1.5rem 1rem 0;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.3s;
+    border-radius: 8px 8px 0 0;
+  }
+  .tab-btn:hover { color: var(--text-secondary); }
+  .tab-btn.active {
+    color: var(--text-primary);
+    background: rgba(255,255,255,0.04);
+  }
+  .tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent-gradient);
+    border-radius: 3px 3px 0 0;
+  }
+  .tab-line {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    height: 1px;
+    background: var(--border-color);
+  }
+
+  /* Tab content */
+  .tab-content { display: none; padding: 1.5rem; max-width: 1400px; margin: 0 auto; }
+  .tab-content.active { display: block; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* KPI row */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+  }
+  .kpi-card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid var(--border-color);
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .kpi-card:hover { transform: translateY(-2px); border-color: #3A4E66; }
+  .kpi-icon { font-size: 1.5rem; margin-bottom: 0.35rem; }
+  .kpi-value { font-size: 1.6rem; font-weight: 700; }
+  .kpi-label { color: var(--text-secondary); font-size: 0.82rem; margin-top: 0.1rem; }
+
+  /* Chart grid */
+  .chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.75rem;
+  }
+  .chart-card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+  }
+  .chart-card h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+    color: var(--text-primary);
+  }
+  .chart-card canvas { width: 100% !important; }
+
+  .chart-card-full {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    margin-bottom: 1.75rem;
+  }
+  .chart-card-full h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    line-height: 1.4;
+  }
+
+  /* Table */
+  .data-table-wrap {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    overflow-x: auto;
+  }
+  .data-table-wrap h3 { font-size: 1rem; font-weight: 600; margin-bottom: 1rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th { text-align: left; color: var(--text-secondary); font-weight: 600; padding: 0.65rem 1rem; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
+  td { padding: 0.65rem 1rem; border-bottom: 1px solid var(--border-color); }
+  tr:last-child td { border-bottom: none; }
+  .winner-dem { color: var(--dem-blue); font-weight: 600; }
+  .winner-rep { color: var(--rep-red); font-weight: 600; }
+  .badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.15rem 0.55rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .badge-dem { background: rgba(69,123,157,0.2); color: var(--dem-blue); }
+  .badge-rep { background: rgba(230,57,70,0.2); color: var(--rep-red); }
+
+  /* Insight box */
+  .insight-box {
+    background: linear-gradient(135deg, rgba(69,123,157,0.12), rgba(230,57,70,0.12));
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.75rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  /* Takeaway cards */
+  .takeaway-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.75rem;
+  }
+  .takeaway-card {
+    background: var(--bg-card);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .takeaway-card:hover { transform: translateY(-2px); border-color: #3A4E66; }
+  .takeaway-card h4 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .takeaway-card p { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.55; }
+  .takeaway-num {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    background: rgba(255,255,255,0.06);
+    width: 26px; height: 26px;
+    line-height: 26px;
+    text-align: center;
+    border-radius: 50%;
+    margin-bottom: 0.65rem;
+  }
+
+  /* Footer */
+  .dashboard-footer {
+    text-align: center;
+    padding: 2rem 1rem 2.5rem;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    border-top: 1px solid var(--border-color);
+    max-width: 1400px;
+    margin: 1rem auto 0;
+  }
+
+  /* County Map */
+  .map-container { position: relative; }
+  .map-controls {
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px; margin-bottom: 1rem; flex-wrap: wrap;
+  }
+  .year-btn {
+    background: var(--bg-card); border: 2px solid var(--border-color);
+    color: var(--text-secondary); font-family: inherit; font-size: 0.9rem;
+    font-weight: 600; padding: 8px 20px; border-radius: 8px; cursor: pointer;
+    transition: all 0.25s;
+  }
+  .year-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+  .year-btn.active {
+    background: linear-gradient(135deg, #457B9D, #E63946);
+    border-color: transparent; color: white;
+  }
+  .play-btn {
+    background: var(--bg-card); border: 2px solid var(--border-color);
+    color: var(--text-secondary); font-family: inherit; font-size: 1rem;
+    padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: all 0.25s;
+  }
+  .play-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+  .play-btn.playing { background: #E63946; border-color: #E63946; color: white; }
+  .map-year-label {
+    font-size: 3.5rem; font-weight: 800; text-align: center;
+    margin-bottom: 0.5rem; letter-spacing: -2px;
+    transition: color 0.4s ease;
+  }
+  .map-year-label.dem-winner { color: #64B5F6; }
+  .map-year-label.rep-winner { color: #E57373; }
+  .map-svg { width: 100%; max-width: 960px; margin: 0 auto; display: block; }
+  .map-svg .state-shape { stroke: #0D1B2A; stroke-width: 0.8px; transition: fill 0.5s ease; cursor: pointer; }
+  .map-svg .state-shape:hover { stroke: #fff; stroke-width: 2px; }
+  .map-svg .state-border { fill: none; stroke: #0D1B2A; stroke-width: 1.2px; pointer-events: none; }
+  .map-legend {
+    display: flex; justify-content: center; align-items: center;
+    gap: 24px; margin-top: 1rem; flex-wrap: wrap;
+  }
+  .legend-bar {
+    width: 260px; height: 14px; border-radius: 7px;
+    background: linear-gradient(90deg, #B71C1C, #E57373, #FFCDD2, #F5F5F5, #BBDEFB, #64B5F6, #1565C0);
+  }
+  .legend-labels {
+    display: flex; justify-content: space-between; width: 260px;
+    font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;
+  }
+  .map-candidate-label {
+    text-align: center; font-size: 1rem; color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+  }
+  .map-candidate-label .dem-name { color: #64B5F6; font-weight: 600; }
+  .map-candidate-label .rep-name { color: #E57373; font-weight: 600; }
+  .map-tooltip {
+    position: absolute; pointer-events: none; padding: 8px 12px;
+    background: #0D1B2Aee; border: 1px solid var(--border-color);
+    border-radius: 8px; font-size: 0.8rem; color: var(--text-primary);
+    opacity: 0; transition: opacity 0.15s; white-space: nowrap; z-index: 10;
+  }
+
+  /* Electoral Vote Tally */
+  .ev-tally-section { margin-top: 1.5rem; }
+  .ev-tally-title {
+    font-size: 1rem; font-weight: 600; text-align: center; margin-bottom: 0.5rem;
+  }
+  .ev-bar-container { max-width: 700px; margin: 0 auto; }
+  .ev-bar-labels {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 6px; font-size: 0.85rem; font-weight: 700;
+  }
+  .ev-dem-label { color: #64B5F6; }
+  .ev-rep-label { color: #E57373; }
+  .ev-threshold {
+    font-size: 0.75rem; color: var(--text-muted); font-weight: 600;
+    position: relative;
+  }
+  .ev-bar {
+    position: relative; display: flex; height: 32px; border-radius: 16px;
+    overflow: hidden; background: var(--bg-dark);
+    border: 1px solid var(--border-color);
+  }
+  .ev-bar-dem {
+    background: linear-gradient(90deg, #1565C0, #64B5F6);
+    transition: width 0.6s ease; height: 100%;
+  }
+  .ev-bar-rep {
+    background: linear-gradient(90deg, #E57373, #B71C1C);
+    transition: width 0.6s ease; height: 100%;
+  }
+  .ev-threshold-line {
+    position: absolute; left: 50.2%; top: -4px; bottom: -4px;
+    width: 2px; background: #FFD54F;
+    box-shadow: 0 0 6px rgba(255,213,79,0.5);
+  }
+  .ev-threshold-line::after {
+    content: '270'; position: absolute; top: -18px; left: 50%;
+    transform: translateX(-50%); font-size: 0.65rem; color: #FFD54F;
+    font-weight: 700;
+  }
+
+  /* Chart descriptions */
+  .chart-desc {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.55;
+    margin: -0.25rem 0 1rem;
+    padding: 0.6rem 0.75rem;
+    border-left: 3px solid var(--border-color);
+    background: rgba(255,255,255,0.02);
+    border-radius: 0 6px 6px 0;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .chart-grid { grid-template-columns: 1fr; }
+    .takeaway-grid { grid-template-columns: 1fr; }
+    .dashboard-header h1 { font-size: 1.5rem; }
+    .tab-btn { padding: 0.6rem 1rem; font-size: 0.85rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="dashboard-header">
+  <h1>US Presidential Elections 2000 &ndash; 2024</h1>
+  <p>Interactive data dashboard &middot; 7 elections &middot; 94,409 county-level records</p>
+</div>
+
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('overview')">National Overview</button>
+  <button class="tab-btn" onclick="switchTab('loyalty')">State Loyalty</button>
+  <button class="tab-btn" onclick="switchTab('county')">County Deep Dive</button>
+  <button class="tab-btn" onclick="switchTab('takeaways')">Key Takeaways</button>
+</div>
+<div class="tab-line"></div>
+
+<!-- ===================== TAB 1: NATIONAL OVERVIEW ===================== -->
+<div id="tab-overview" class="tab-content active">
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-icon">&#x1F5F3;&#xFE0F;</div>
+      <div class="kpi-value">7</div>
+      <div class="kpi-label">Elections Analysed (2000 &ndash; 2024)</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">&#x1F3DB;&#xFE0F;</div>
+      <div class="kpi-value">51</div>
+      <div class="kpi-label">States + DC Tracked</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">&#x1F4C8;</div>
+      <div class="kpi-value">199M+</div>
+      <div class="kpi-label">Votes Cast in 2024 (Highest Turnout)</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">&#x1F504;</div>
+      <div class="kpi-value">102</div>
+      <div class="kpi-label">Counties Flipped DEM &rarr; REP in 2024</div>
+    </div>
+  </div>
+
+  <!-- State Map -->
+  <div class="chart-card-full" style="margin-bottom:1.5rem;">
+    <div class="map-year-label" id="mapYearLabel">2000</div>
+    <div class="map-candidate-label" id="mapCandidateLabel">
+      <span class="dem-name">Al Gore</span> vs <span class="rep-name">George W. Bush</span>
+    </div>
+
+    <div class="map-controls">
+      <button class="play-btn" id="playBtn" onclick="toggleAutoPlay()">&#9654; Play</button>
+      <button class="year-btn active" data-year="0" onclick="selectYear(0, this)">2000</button>
+      <button class="year-btn" data-year="1" onclick="selectYear(1, this)">2004</button>
+      <button class="year-btn" data-year="2" onclick="selectYear(2, this)">2008</button>
+      <button class="year-btn" data-year="3" onclick="selectYear(3, this)">2012</button>
+      <button class="year-btn" data-year="4" onclick="selectYear(4, this)">2016</button>
+      <button class="year-btn" data-year="5" onclick="selectYear(5, this)">2020</button>
+      <button class="year-btn" data-year="6" onclick="selectYear(6, this)">2024</button>
+    </div>
+
+    <p class="chart-desc">Each state is coloured by the winning party's margin of victory — deeper blue means a stronger Democrat win, deeper red means a stronger Republican win. Press Play to watch the map cycle through all 7 elections continuously.</p>
+
+    <div class="map-container">
+      <div id="mapTooltip" class="map-tooltip"></div>
+      <div id="stateMap"></div>
+    </div>
+
+    <div class="map-legend">
+      <span style="font-size:0.8rem;color:var(--text-muted);">Strong REP</span>
+      <div class="legend-bar"></div>
+      <span style="font-size:0.8rem;color:var(--text-muted);">Strong DEM</span>
+    </div>
+    <p style="text-align:center;color:var(--text-muted);font-size:0.78rem;margin-top:0.75rem;">Alaska and Hawaii are excluded to focus on the contiguous United States, consistent with the original Tableau analysis.</p>
+
+    <!-- Electoral Vote Tally Bar -->
+    <div class="ev-tally-section">
+      <h3 class="ev-tally-title" id="evTallyTitle">Electoral College: Why the Map Deceives</h3>
+      <p class="chart-desc" style="margin-top:0;">Geography doesn't vote — people do. The map above is dominated by red because Republican-leaning states cover more land area. But electoral votes are allocated by population, so a single blue state like California (54 EV) outweighs a dozen small red states combined. The bar below shows the actual electoral vote split.</p>
+      <div class="ev-bar-container">
+        <div class="ev-bar-labels">
+          <span class="ev-dem-label" id="evDemLabel">DEM 266</span>
+          <span class="ev-threshold">270 to win</span>
+          <span class="ev-rep-label" id="evRepLabel">REP 271</span>
+        </div>
+        <div class="ev-bar">
+          <div class="ev-bar-dem" id="evBarDem" style="width:49.4%"></div>
+          <div class="ev-bar-rep" id="evBarRep" style="width:50.6%"></div>
+          <div class="ev-threshold-line"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top States by Electoral Votes -->
+    <div style="margin-top:1.25rem;">
+      <h3 style="font-size:1rem;font-weight:600;margin-bottom:0.75rem;">Top 15 States by Electoral Votes — Coloured by Winner</h3>
+      <p class="chart-desc" style="margin-top:-0.5rem;">California alone carries more electoral weight than the 7 smallest states combined. This is why Democrats can win the presidency despite the map appearing overwhelmingly red.</p>
+      <div style="position:relative;height:420px;">
+        <canvas id="chartEVStates"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>Both Parties Gained Votes, but Republicans Surged Past Democrats in 2024</h3>
+      <canvas id="chartPopularVote"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Voter Turnout Nearly Doubled in 24 Years</h3>
+      <canvas id="chartTurnout"></canvas>
+    </div>
+  </div>
+
+  <div class="data-table-wrap">
+    <h3>Election Results Summary</h3>
+    <table>
+      <thead>
+        <tr><th>Year</th><th>Democrat</th><th>Republican</th><th>Winner</th><th>Popular Vote Margin</th><th>Note</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>2000</td><td>Al Gore</td><td>George W. Bush</td><td><span class="badge badge-rep">REP</span> Bush</td><td class="winner-rep">REP +0.5M</td><td>Gore won popular vote</td></tr>
+        <tr><td>2004</td><td>John Kerry</td><td>George W. Bush</td><td><span class="badge badge-rep">REP</span> Bush</td><td class="winner-rep">REP +3.0M</td><td></td></tr>
+        <tr><td>2008</td><td>Barack Obama</td><td>John McCain</td><td><span class="badge badge-dem">DEM</span> Obama</td><td class="winner-dem">DEM +9.5M</td><td></td></tr>
+        <tr><td>2012</td><td>Barack Obama</td><td>Mitt Romney</td><td><span class="badge badge-dem">DEM</span> Obama</td><td class="winner-dem">DEM +5.1M</td><td></td></tr>
+        <tr><td>2016</td><td>Hillary Clinton</td><td>Donald Trump</td><td><span class="badge badge-rep">REP</span> Trump</td><td class="winner-dem">DEM +2.8M</td><td>Clinton won popular vote</td></tr>
+        <tr><td>2020</td><td>Joseph R Biden Jr</td><td>Donald J Trump</td><td><span class="badge badge-dem">DEM</span> Biden</td><td class="winner-dem">DEM +7.1M</td><td></td></tr>
+        <tr><td>2024</td><td>Kamala D Harris</td><td>Donald J Trump</td><td><span class="badge badge-rep">REP</span> Trump</td><td class="winner-rep">REP +5.5M</td><td>First REP popular vote win since 2004</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===================== TAB 2: STATE LOYALTY ===================== -->
+<div id="tab-loyalty" class="tab-content">
+
+  <div class="insight-box">
+    15 States Swung Between Parties &mdash; The Rest Stayed Loyal for All 7 Elections
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>12 States Have Been Solidly Democratic Since 2000</h3>
+      <p class="chart-desc">These states voted Democrat in every election from 2000 to 2024. Most are coastal or urban-heavy — California, New York, and Illinois anchor the group.</p>
+      <canvas id="chartLoyalDem"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>20 States Have Been Solidly Republican Since 2000</h3>
+      <p class="chart-desc">These states voted Republican in every election without exception. They span the South, Great Plains, and Mountain West — a geographically larger but less population-dense bloc than the Democratic loyalists.</p>
+      <canvas id="chartLoyalRep"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-card-full">
+    <h3>Swing State Margins Over Time &mdash; Positive = Democrat Win, Negative = Republican Win</h3>
+    <p class="chart-desc">Each line tracks how a battleground state's margin shifted across 7 elections. Lines above the dashed zero line mean the Democrat won that state; below means the Republican won. The key takeaway: nearly every swing state trended downward (more Republican) by 2024, with Florida and Ohio dropping so far they may no longer be competitive.</p>
+    <div style="position:relative;height:420px;">
+      <canvas id="chartSwingMargins"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB 3: COUNTY DEEP DIVE ===================== -->
+<div id="tab-county" class="tab-content">
+
+  <div class="chart-card-full">
+    <h3>Los Angeles County Cast More Votes Than 30 States Combined &mdash; Top 15 Counties by All-Time Total Votes</h3>
+    <p class="chart-desc">This chart shows cumulative votes across all 7 elections, split by party. Blue bars represent Democrat votes and red bars represent Republican votes. Most mega-counties lean Democrat, but Maricopa (AZ) and Orange (CA) are genuinely contested — their red and blue segments are nearly equal.</p>
+    <div style="position:relative;height:520px;">
+      <canvas id="chartTopCounties"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-card-full">
+    <h3>102 Counties Flipped from Democrat to Republican Between 2020 and 2024</h3>
+    <p class="chart-desc">Each pair of bars shows how many counties changed hands between consecutive elections. Red bars are counties that flipped from Democrat to Republican; blue bars flipped the other way. The pattern is clear: Republican gains at the county level have been the dominant trend, with the exception of 2008 (Obama wave) and 2020.</p>
+    <div style="position:relative;height:380px;">
+      <canvas id="chartCountyFlips"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TAB 4: KEY TAKEAWAYS ===================== -->
+<div id="tab-takeaways" class="tab-content">
+
+  <div class="takeaway-grid">
+    <div class="takeaway-card">
+      <div class="takeaway-num">1</div>
+      <h4>2024 Broke the Popular Vote Pattern</h4>
+      <p>Republicans won both the popular vote and the Electoral College for the first time since 2004, with Donald Trump surpassing 91 million votes &mdash; an unprecedented total for any Republican candidate.</p>
+    </div>
+    <div class="takeaway-card">
+      <div class="takeaway-num">2</div>
+      <h4>Turnout Explosion</h4>
+      <p>199 million votes were cast in 2024, up 89% from 2000's 105 million. Both parties drove historic turnout &mdash; Democrats hit 85.9M and Republicans reached 91.4M, both all-time records.</p>
+    </div>
+    <div class="takeaway-card">
+      <div class="takeaway-num">3</div>
+      <h4>Florida's Red Shift</h4>
+      <p>Florida went from the most razor-thin margin in modern history (0.0% in 2000) to a commanding &minus;13.1% Republican margin in 2024, transforming from the ultimate swing state into a solidly red stronghold.</p>
+    </div>
+    <div class="takeaway-card">
+      <div class="takeaway-num">4</div>
+      <h4>The Blue Wall Crumbled</h4>
+      <p>Pennsylvania, Michigan, and Wisconsin &mdash; the so-called "Blue Wall" &mdash; all flipped Republican in 2024 after going Democratic in 2020. These three states had been reliable Democratic territory for decades before 2016.</p>
+    </div>
+    <div class="takeaway-card">
+      <div class="takeaway-num">5</div>
+      <h4>County-Level Realignment</h4>
+      <p>102 counties flipped from Democrat to Republican between 2020 and 2024, while only 15 went the other direction &mdash; a nearly 7-to-1 ratio signalling a broad geographic shift toward the GOP.</p>
+    </div>
+    <div class="takeaway-card">
+      <div class="takeaway-num">6</div>
+      <h4>Loyalty Runs Deep</h4>
+      <p>36 states voted for the same party in all 7 elections from 2000 to 2024 &mdash; 12 solidly Democratic and 20 solidly Republican, plus DC. Only 15 states swung between parties during this quarter-century period.</p>
+    </div>
+  </div>
+</div>
+
+<div class="dashboard-footer">
+  Data: MIT Election Data + Science Lab &middot; countypres_2000-2024 &middot; 94,409 records across 7 elections
+</div>
+
+<script>
+// ============================================================
+// GLOBALS
+// ============================================================
+const DEM = '#457B9D';
+const REP = '#E63946';
+const GRID = '#1E2D40';
+const TICK = '#6B7A8D';
+const years = ['2000','2004','2008','2012','2016','2020','2024'];
+
+Chart.defaults.color = TICK;
+Chart.defaults.font.family = "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+Chart.defaults.plugins.legend.labels.pointStyleWidth = 12;
+Chart.defaults.plugins.tooltip.backgroundColor = '#0D1B2A';
+Chart.defaults.plugins.tooltip.borderColor = '#2A3A4E';
+Chart.defaults.plugins.tooltip.borderWidth = 1;
+Chart.defaults.plugins.tooltip.padding = 10;
+Chart.defaults.plugins.tooltip.cornerRadius = 8;
+Chart.defaults.plugins.tooltip.titleFont = { weight: '600' };
+
+function millions(val) { return (val / 1e6).toFixed(1) + 'M'; }
+function millionsAxis(val) { return (val / 1e6).toFixed(0) + 'M'; }
+
+// ============================================================
+// TAB SWITCHING
+// ============================================================
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+
+  // Trigger chart resize for the newly visible tab
+  setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 50);
+}
+
+// ============================================================
+// TAB 1 CHARTS
+// ============================================================
+new Chart(document.getElementById('chartPopularVote'), {
+  type: 'line',
+  data: {
+    labels: years,
+    datasets: [
+      {
+        label: 'Democrat',
+        data: [51.0e6, 58.9e6, 69.4e6, 65.8e6, 65.8e6, 81.3e6, 85.9e6],
+        borderColor: DEM, backgroundColor: DEM + '22',
+        fill: true, tension: 0.35, pointRadius: 5, pointHoverRadius: 7, borderWidth: 2.5
+      },
+      {
+        label: 'Republican',
+        data: [50.5e6, 61.9e6, 59.9e6, 60.7e6, 63.0e6, 74.2e6, 91.4e6],
+        borderColor: REP, backgroundColor: REP + '22',
+        fill: true, tension: 0.35, pointRadius: 5, pointHoverRadius: 7, borderWidth: 2.5
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    interaction: { mode: 'index', intersect: false },
+    scales: {
+      y: { grid: { color: GRID }, ticks: { callback: millionsAxis }, beginAtZero: false },
+      x: { grid: { color: GRID } }
+    },
+    plugins: {
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + millions(ctx.parsed.y) } }
+    }
+  }
+});
+
+new Chart(document.getElementById('chartTurnout'), {
+  type: 'bar',
+  data: {
+    labels: years,
+    datasets: [{
+      label: 'Total Votes',
+      data: [105.4e6, 122.3e6, 131.2e6, 129.0e6, 136.5e6, 158.5e6, 199.2e6],
+      backgroundColor: years.map((_, i) => i === 6 ? '#F4A261' : '#3A5F7C'),
+      borderRadius: 6, borderSkipped: false
+    }]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      y: { grid: { color: GRID }, ticks: { callback: millionsAxis }, beginAtZero: true },
+      x: { grid: { color: GRID } }
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => 'Total: ' + millions(ctx.parsed.y) } }
+    }
+  }
+});
+
+// ============================================================
+// TAB 2 CHARTS
+// ============================================================
+// Loyal DEM states
+const loyalDem = ['CA','CT','DC','DE','HI','IL','MA','MD','ME','NY','OR','RI','VT','WA'].reverse();
+const loyalDemCount = loyalDem.map(() => 7);
+
+new Chart(document.getElementById('chartLoyalDem'), {
+  type: 'bar',
+  data: {
+    labels: loyalDem,
+    datasets: [{
+      label: 'Elections Won',
+      data: loyalDemCount,
+      backgroundColor: DEM,
+      borderRadius: 4, borderSkipped: false
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    scales: {
+      x: { grid: { color: GRID }, max: 7, ticks: { stepSize: 1 } },
+      y: { grid: { display: false } }
+    },
+    plugins: { legend: { display: false } }
+  }
+});
+
+// Loyal REP states
+const loyalRep = ['AL','AK','AR','ID','KS','KY','LA','MS','MO','MT','NE','ND','OK','SC','SD','TN','TX','UT','WV','WY'].reverse();
+const loyalRepCount = loyalRep.map(() => 7);
+
+new Chart(document.getElementById('chartLoyalRep'), {
+  type: 'bar',
+  data: {
+    labels: loyalRep,
+    datasets: [{
+      label: 'Elections Won',
+      data: loyalRepCount,
+      backgroundColor: REP,
+      borderRadius: 4, borderSkipped: false
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    scales: {
+      x: { grid: { color: GRID }, max: 7, ticks: { stepSize: 1 } },
+      y: { grid: { display: false } }
+    },
+    plugins: { legend: { display: false } }
+  }
+});
+
+// Swing state margins
+const swingData = {
+  PA: [4.2, 2.5, 10.3, 5.4, -0.7, 1.2, -2.0],
+  MI: [5.1, 3.4, 16.4, 9.2, -0.2, 2.8, -1.4],
+  WI: [0.2, 0.4, 13.9, 6.9, -0.8, 0.6, -1.1],
+  AZ: [-6.3, -10.5, -8.5, -9.1, -3.5, 0.3, -5.5],
+  GA: [-11.7, -16.6, -5.2, -7.8, -5.1, 0.2, -2.2],
+  NV: [-3.5, -2.6, 12.5, 6.7, 2.4, 2.4, -3.2],
+  NC: [-12.8, -12.4, 0.3, -2.0, -3.7, -1.3, -3.3],
+  FL: [-0.0, -5.0, 2.8, 0.9, -1.2, -3.4, -13.1],
+  OH: [-3.5, -2.1, 4.6, 3.0, -8.1, -8.0, -11.1]
+};
+
+const swingColors = ['#457B9D','#74B3CE','#A8DADC','#F4A261','#E76F51','#D4A373','#E63946','#9B2226','#6D597A'];
+const swingLabels = Object.keys(swingData);
+
+new Chart(document.getElementById('chartSwingMargins'), {
+  type: 'line',
+  data: {
+    labels: years,
+    datasets: swingLabels.map((st, i) => ({
+      label: st,
+      data: swingData[st],
+      borderColor: swingColors[i],
+      backgroundColor: 'transparent',
+      tension: 0.3,
+      pointRadius: 4,
+      pointHoverRadius: 7,
+      borderWidth: 2.5
+    }))
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    scales: {
+      y: {
+        grid: { color: GRID },
+        ticks: { callback: v => v > 0 ? '+' + v + '%' : v + '%' },
+        title: { display: true, text: 'DEM Margin (%)', color: TICK }
+      },
+      x: { grid: { color: GRID } }
+    },
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const v = ctx.parsed.y;
+            return ctx.dataset.label + ': ' + (v > 0 ? '+' : '') + v.toFixed(1) + '% ' + (v >= 0 ? '(DEM)' : '(REP)');
+          }
+        }
+      },
+      annotation: undefined
+    }
+  },
+  plugins: [{
+    id: 'zeroLine',
+    beforeDraw(chart) {
+      const { ctx, chartArea, scales } = chart;
+      const y = scales.y.getPixelForValue(0);
+      if (y >= chartArea.top && y <= chartArea.bottom) {
+        ctx.save();
+        ctx.setLineDash([6, 4]);
+        ctx.strokeStyle = '#FFFFFF44';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(chartArea.left, y);
+        ctx.lineTo(chartArea.right, y);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+  }]
+});
+
+// ============================================================
+// TAB 3 CHARTS
+// ============================================================
+const countyNames = [
+  'Los Angeles, CA','Cook, IL','Maricopa, AZ','Harris, TX','San Diego, CA',
+  'Orange, CA','King, WA','Miami-Dade, FL','Dallas, TX','Wayne, MI',
+  'Riverside, CA','Clark, NV','Allegheny, PA','San Bernardino, CA','Middlesex, MA'
+].reverse();
+const countyDem = [16.0,10.6,4.8,5.2,4.8,4.0,4.8,3.5,3.4,4.0,2.7,3.1,3.3,2.5,3.4].reverse();
+const countyRep = [6.9,3.7,5.5,4.8,3.8,4.2,1.8,2.8,2.4,1.7,3.0,2.4,2.1,2.7,1.6].reverse();
+
+new Chart(document.getElementById('chartTopCounties'), {
+  type: 'bar',
+  data: {
+    labels: countyNames,
+    datasets: [
+      { label: 'Democrat', data: countyDem, backgroundColor: DEM, borderRadius: 4, borderSkipped: false },
+      { label: 'Republican', data: countyRep, backgroundColor: REP, borderRadius: 4, borderSkipped: false }
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: { stacked: true, grid: { color: GRID }, ticks: { callback: v => v + 'M' } },
+      y: { stacked: true, grid: { display: false } }
+    },
+    plugins: {
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.x.toFixed(1) + 'M votes' } }
+    }
+  }
+});
+
+// County flips
+const flipLabels = ['2000→2004','2004→2008','2008→2012','2012→2016','2016→2020','2020→2024'];
+const flipDR = [338, 53, 227, 266, 25, 102];
+const flipRD = [130, 399, 31, 27, 65, 15];
+
+new Chart(document.getElementById('chartCountyFlips'), {
+  type: 'bar',
+  data: {
+    labels: flipLabels,
+    datasets: [
+      { label: 'DEM → REP', data: flipDR, backgroundColor: REP, borderRadius: 6, borderSkipped: false },
+      { label: 'REP → DEM', data: flipRD, backgroundColor: DEM, borderRadius: 6, borderSkipped: false }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: { grid: { color: GRID }, beginAtZero: true },
+      x: { grid: { color: GRID } }
+    },
+    plugins: {
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + ' counties' } }
+    }
+  }
+});
+
+// ============================================================
+// STATE MAP — D3.js choropleth
+// ============================================================
+const STATE_MARGINS = {"01": [-0.152, -0.258, -0.218, -0.224, -0.287, -0.258, -0.309], "05": [-0.056, -0.1, -0.203, -0.243, -0.286, -0.284, -0.313], "04": [-0.066, -0.106, -0.086, -0.092, -0.038, 0.003, -0.069], "06": [0.124, 0.101, 0.246, 0.237, 0.323, 0.298, 0.208], "08": [-0.09, -0.047, 0.091, 0.055, 0.054, 0.139, 0.113], "09": [0.185, 0.105, 0.229, 0.175, 0.143, 0.204, 0.148], "11": [0.81, 0.81, 0.868, 0.852, 0.914, 0.889, 0.866], "10": [0.135, 0.077, 0.253, 0.189, 0.12, 0.193, 0.15], "12": [0.0, -0.05, 0.028, 0.009, -0.012, -0.034, -0.132], "13": [-0.12, -0.167, -0.053, -0.079, -0.053, 0.003, -0.022], "19": [0.003, -0.007, 0.097, 0.059, -0.101, -0.086, -0.135], "16": [-0.417, -0.386, -0.26, -0.328, -0.366, -0.318, -0.375], "17": [0.124, 0.104, 0.255, 0.172, 0.18, 0.173, 0.111], "18": [-0.16, -0.208, 0.01, -0.104, -0.202, -0.164, -0.193], "20": [-0.218, -0.257, -0.152, -0.221, -0.222, -0.15, -0.164], "21": [-0.155, -0.2, -0.165, -0.231, -0.313, -0.264, -0.31], "22": [-0.079, -0.147, -0.19, -0.175, -0.203, -0.189, -0.227], "25": [0.296, 0.255, 0.264, 0.236, 0.293, 0.342, 0.259], "24": [0.169, 0.131, 0.259, 0.266, 0.28, 0.341, 0.295], "23": [0.055, 0.082, 0.177, 0.157, 0.032, 0.089, 0.066], "26": [0.053, 0.035, 0.167, 0.096, -0.002, 0.028, -0.014], "27": [0.026, 0.035, 0.105, 0.079, 0.017, 0.073, 0.043], "29": [-0.034, -0.072, -0.001, -0.096, -0.196, -0.157, -0.187], "28": [-0.172, -0.205, -0.133, -0.116, -0.182, -0.168, -0.231], "30": [-0.273, -0.21, -0.025, -0.141, -0.222, -0.168, -0.206], "37": [-0.129, -0.125, 0.003, -0.021, -0.038, -0.014, -0.033], "38": [-0.295, -0.278, -0.088, -0.202, -0.396, -0.344, -0.374], "31": [-0.304, -0.337, -0.152, -0.223, -0.271, -0.196, -0.208], "33": [-0.013, 0.014, 0.097, 0.057, 0.004, 0.075, 0.028], "34": [0.164, 0.068, 0.157, 0.18, 0.146, 0.161, 0.06], "35": [0.001, -0.008, 0.153, 0.106, 0.093, 0.11, 0.061], "32": [-0.037, -0.026, 0.128, 0.068, 0.026, 0.025, -0.032], "36": [0.262, 0.197, 0.27, 0.321, 0.235, 0.234, 0.127], "39": [-0.036, -0.021, 0.046, 0.03, -0.085, -0.082, -0.113], "40": [-0.222, -0.311, -0.313, -0.335, -0.386, -0.339, -0.349], "41": [0.005, 0.042, 0.168, 0.125, 0.123, 0.166, 0.149], "42": [0.043, 0.025, 0.104, 0.055, -0.008, 0.012, -0.017], "44": [0.313, 0.212, 0.284, 0.28, 0.166, 0.212, 0.139], "45": [-0.163, -0.173, -0.091, -0.106, -0.149, -0.119, -0.181], "46": [-0.232, -0.218, -0.086, -0.184, -0.319, -0.269, -0.299], "47": [-0.039, -0.144, -0.153, -0.207, -0.272, -0.237, -0.301], "48": [-0.219, -0.23, -0.119, -0.16, -0.094, -0.057, -0.136], "49": [-0.435, -0.467, -0.291, -0.493, -0.248, -0.214, -0.222], "51": [-0.083, -0.083, 0.064, 0.039, 0.057, 0.103, 0.059], "50": [0.109, 0.206, 0.378, 0.365, 0.304, 0.366, 0.323], "53": [0.059, 0.073, 0.175, 0.153, 0.176, 0.199, 0.189], "55": [0.002, 0.004, 0.141, 0.069, -0.008, 0.006, -0.009], "54": [-0.065, -0.129, -0.133, -0.273, -0.443, -0.396, -0.427], "56": [-0.42, -0.406, -0.331, -0.423, -0.514, -0.45, -0.47]};
+const STATE_NAMES = {"01": "AL", "05": "AR", "04": "AZ", "06": "CA", "08": "CO", "09": "CT", "11": "DC", "10": "DE", "12": "FL", "13": "GA", "19": "IA", "16": "ID", "17": "IL", "18": "IN", "20": "KS", "21": "KY", "22": "LA", "25": "MA", "24": "MD", "23": "ME", "26": "MI", "27": "MN", "29": "MO", "28": "MS", "30": "MT", "37": "NC", "38": "ND", "31": "NE", "33": "NH", "34": "NJ", "35": "NM", "32": "NV", "36": "NY", "39": "OH", "40": "OK", "41": "OR", "42": "PA", "44": "RI", "45": "SC", "46": "SD", "47": "TN", "48": "TX", "49": "UT", "51": "VA", "50": "VT", "53": "WA", "55": "WI", "54": "WV", "56": "WY"};
+
+const MAP_YEARS = [2000, 2004, 2008, 2012, 2016, 2020, 2024];
+const CANDIDATES = {
+  2000: { dem: 'Al Gore', rep: 'George W. Bush' },
+  2004: { dem: 'John Kerry', rep: 'George W. Bush' },
+  2008: { dem: 'Barack Obama', rep: 'John McCain' },
+  2012: { dem: 'Barack Obama', rep: 'Mitt Romney' },
+  2016: { dem: 'Hillary Clinton', rep: 'Donald Trump' },
+  2020: { dem: 'Joe Biden', rep: 'Donald Trump' },
+  2024: { dem: 'Kamala Harris', rep: 'Donald Trump' }
+};
+// Electoral college winners (popular vote winner differs in 2000, 2016)
+const EC_WINNERS = { 2000:'REP', 2004:'REP', 2008:'DEM', 2012:'DEM', 2016:'REP', 2020:'DEM', 2024:'REP' };
+
+let currentYearIdx = 0;
+let autoPlayInterval = null;
+
+function marginColor(m) {
+  if (m === undefined || m === null) return '#333';
+  const abs = Math.min(Math.abs(m), 0.6);
+  const t = abs / 0.6;
+  if (m > 0) {
+    return d3.interpolateBlues(0.15 + t * 0.75);
+  } else {
+    return d3.interpolateReds(0.15 + t * 0.75);
+  }
+}
+
+function updateMap(yearIdx) {
+  currentYearIdx = yearIdx;
+  const year = MAP_YEARS[yearIdx];
+  const c = CANDIDATES[year];
+  const winner = EC_WINNERS[year];
+
+  // Update year label with winner colour
+  const yearLabel = document.getElementById('mapYearLabel');
+  yearLabel.textContent = year;
+  yearLabel.className = 'map-year-label ' + (winner === 'DEM' ? 'dem-winner' : 'rep-winner');
+
+  // Update candidate label
+  document.getElementById('mapCandidateLabel').innerHTML =
+    `<span class="dem-name">${c.dem}</span> vs <span class="rep-name">${c.rep}</span>`;
+
+  // Update year buttons
+  document.querySelectorAll('.year-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.year) === yearIdx);
+  });
+
+  // Update state fills with fast transition
+  d3.selectAll('.state-shape').transition().duration(400)
+    .attr('fill', function() {
+      const fips = this.dataset.fips;
+      const data = STATE_MARGINS[fips];
+      return data ? marginColor(data[yearIdx]) : '#333';
+    });
+}
+
+function selectYear(idx, btn) {
+  stopAutoPlay();
+  updateMap(idx);
+}
+
+function toggleAutoPlay() {
+  if (autoPlayInterval) {
+    stopAutoPlay();
+  } else {
+    startAutoPlay();
+  }
+}
+
+function startAutoPlay() {
+  const btn = document.getElementById('playBtn');
+  btn.innerHTML = '&#9632; Stop';
+  btn.classList.add('playing');
+  // Start from current position, loop continuously
+  autoPlayInterval = setInterval(() => {
+    currentYearIdx = (currentYearIdx + 1) % MAP_YEARS.length;
+    updateMap(currentYearIdx);
+  }, 1200);
+}
+
+function stopAutoPlay() {
+  if (autoPlayInterval) {
+    clearInterval(autoPlayInterval);
+    autoPlayInterval = null;
+  }
+  const btn = document.getElementById('playBtn');
+  btn.innerHTML = '&#9654; Play';
+  btn.classList.remove('playing');
+}
+
+// Load TopoJSON and render state map
+const TOPO_URL = 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-albers-10m.json';
+
+d3.json(TOPO_URL).then(us => {
+  const width = 975;
+  const height = 610;
+
+  const svg = d3.select('#stateMap')
+    .append('svg')
+    .attr('viewBox', `0 0 ${width} ${height}`)
+    .attr('class', 'map-svg')
+    .attr('preserveAspectRatio', 'xMidYMid meet');
+
+  const path = d3.geoPath();
+  const states = topojson.feature(us, us.objects.states);
+  const stateBorders = topojson.mesh(us, us.objects.states, (a, b) => a !== b);
+
+  const tooltip = document.getElementById('mapTooltip');
+
+  // Draw states
+  svg.append('g')
+    .selectAll('path')
+    .data(states.features.filter(d => d.id !== '02' && d.id !== '15'))
+    .join('path')
+    .attr('d', path)
+    .attr('class', 'state-shape')
+    .attr('data-fips', d => d.id)
+    .attr('fill', d => {
+      const data = STATE_MARGINS[d.id];
+      return data ? marginColor(data[0]) : '#333';
+    })
+    .on('mouseenter', function(event, d) {
+      const fips = d.id;
+      const data = STATE_MARGINS[fips];
+      const name = STATE_NAMES[fips] || 'Unknown';
+      const stateName = d.properties.name || name;
+      if (data) {
+        const m = data[currentYearIdx];
+        const pct = (Math.abs(m) * 100).toFixed(1);
+        const party = m > 0 ? 'DEM' : 'REP';
+        const color = m > 0 ? '#64B5F6' : '#E57373';
+        tooltip.innerHTML = `<strong>${stateName}</strong> (${name})<br><span style="color:${color}">${party} +${pct}%</span>`;
+      } else {
+        tooltip.innerHTML = `<strong>${stateName}</strong><br>No data`;
+      }
+      tooltip.style.opacity = '1';
+    })
+    .on('mousemove', function(event) {
+      const rect = document.getElementById('stateMap').getBoundingClientRect();
+      tooltip.style.left = (event.clientX - rect.left + 12) + 'px';
+      tooltip.style.top = (event.clientY - rect.top - 10) + 'px';
+    })
+    .on('mouseleave', function() {
+      tooltip.style.opacity = '0';
+    });
+
+  // Draw state borders
+  svg.append('path')
+    .datum(stateBorders)
+    .attr('class', 'state-border')
+    .attr('d', path);
+
+  // Set initial year label colour
+  const yearLabel = document.getElementById('mapYearLabel');
+  yearLabel.className = 'map-year-label rep-winner';
+});
+
+// ============================================================
+// ELECTORAL VOTES
+// ============================================================
+const EV_BY_STATE = {"01": [9, 9, 9, 9, 9, 9, 9], "04": [8, 10, 10, 11, 11, 11, 11], "05": [6, 6, 6, 6, 6, 6, 6], "06": [54, 55, 55, 55, 55, 54, 54], "08": [8, 9, 9, 9, 9, 10, 10], "09": [8, 7, 7, 7, 7, 7, 7], "10": [3, 3, 3, 3, 3, 3, 3], "11": [3, 3, 3, 3, 3, 3, 3], "12": [25, 27, 27, 29, 29, 30, 30], "13": [13, 15, 15, 16, 16, 16, 16], "16": [4, 4, 4, 4, 4, 4, 4], "17": [22, 21, 21, 20, 20, 19, 19], "18": [12, 11, 11, 11, 11, 11, 11], "19": [7, 7, 7, 6, 6, 6, 6], "20": [6, 6, 6, 6, 6, 6, 6], "21": [8, 8, 8, 8, 8, 8, 8], "22": [9, 9, 9, 8, 8, 8, 8], "23": [4, 4, 4, 4, 4, 4, 4], "24": [10, 10, 10, 10, 10, 10, 10], "25": [12, 12, 12, 11, 11, 11, 11], "26": [18, 17, 17, 16, 16, 15, 15], "27": [10, 10, 10, 10, 10, 10, 10], "28": [7, 6, 6, 6, 6, 6, 6], "29": [11, 11, 11, 10, 10, 10, 10], "30": [3, 3, 3, 3, 3, 4, 4], "31": [5, 5, 5, 5, 5, 5, 5], "32": [4, 5, 5, 6, 6, 6, 6], "33": [4, 4, 4, 4, 4, 4, 4], "34": [15, 15, 15, 14, 14, 14, 14], "35": [5, 5, 5, 5, 5, 5, 5], "36": [33, 31, 31, 29, 29, 28, 28], "37": [14, 15, 15, 15, 15, 16, 16], "38": [3, 3, 3, 3, 3, 3, 3], "39": [21, 20, 20, 18, 18, 17, 17], "40": [8, 7, 7, 7, 7, 7, 7], "41": [7, 7, 7, 7, 7, 8, 8], "42": [23, 21, 21, 20, 20, 19, 19], "44": [4, 4, 4, 4, 4, 4, 4], "45": [8, 8, 8, 9, 9, 9, 9], "46": [3, 3, 3, 3, 3, 3, 3], "47": [11, 11, 11, 11, 11, 11, 11], "48": [32, 34, 34, 38, 38, 40, 40], "49": [5, 5, 5, 6, 6, 6, 6], "50": [3, 3, 3, 3, 3, 3, 3], "51": [13, 13, 13, 13, 13, 13, 13], "53": [11, 11, 11, 12, 12, 12, 12], "54": [5, 5, 5, 5, 5, 4, 4], "55": [11, 10, 10, 10, 10, 10, 10], "56": [3, 3, 3, 3, 3, 3, 3]};
+const EC_TOTALS = [{"DEM": 266, "REP": 271}, {"DEM": 251, "REP": 286}, {"DEM": 365, "REP": 173}, {"DEM": 332, "REP": 206}, {"DEM": 227, "REP": 304}, {"DEM": 306, "REP": 232}, {"DEM": 226, "REP": 312}];
+const TOP15_FIPS = ["06", "48", "12", "36", "17", "42", "39", "13", "37", "26", "34", "51", "53", "04", "18"];
+const TOP15_NAMES = ["CA", "TX", "FL", "NY", "IL", "PA", "OH", "GA", "NC", "MI", "NJ", "VA", "WA", "AZ", "IN"];
+
+// Top 15 EV chart
+let evChart = null;
+
+function buildEVChart(yearIdx) {
+  const evData = TOP15_FIPS.map(fips => {
+    const evs = EV_BY_STATE[fips];
+    return evs ? evs[yearIdx] : 0;
+  });
+  const colors = TOP15_FIPS.map(fips => {
+    const m = STATE_MARGINS[fips];
+    if (!m) return '#333';
+    return m[yearIdx] > 0 ? '#457B9D' : '#E63946';
+  });
+
+  if (evChart) {
+    evChart.data.datasets[0].data = evData;
+    evChart.data.datasets[0].backgroundColor = colors;
+    evChart.update('none');
+    return;
+  }
+
+  evChart = new Chart(document.getElementById('chartEVStates'), {
+    type: 'bar',
+    data: {
+      labels: TOP15_NAMES,
+      datasets: [{
+        label: 'Electoral Votes',
+        data: evData,
+        backgroundColor: colors,
+        borderRadius: 6,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { grid: { color: '#1E2D40' }, beginAtZero: true,
+          title: { display: true, text: 'Electoral Votes', color: '#6B7A8D' } },
+        y: { grid: { display: false } }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const fips = TOP15_FIPS[ctx.dataIndex];
+              const m = STATE_MARGINS[fips];
+              const margin = m ? m[currentYearIdx] : 0;
+              const party = margin > 0 ? 'DEM' : 'REP';
+              return ctx.parsed.x + ' electoral votes (' + party + ' +' + (Math.abs(margin)*100).toFixed(1) + '%)';
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function updateEVTally(yearIdx) {
+  const ec = EC_TOTALS[yearIdx];
+  const demEV = ec.DEM;
+  const repEV = ec.REP;
+  const total = demEV + repEV;
+
+  document.getElementById('evDemLabel').textContent = 'DEM ' + demEV;
+  document.getElementById('evRepLabel').textContent = 'REP ' + repEV;
+  document.getElementById('evBarDem').style.width = (demEV / total * 100).toFixed(1) + '%';
+  document.getElementById('evBarRep').style.width = (repEV / total * 100).toFixed(1) + '%';
+
+  // Move threshold line (270/538 = 50.2%)
+  document.querySelector('.ev-threshold-line').style.left = (270 / total * 100).toFixed(1) + '%';
+}
+
+// Patch updateMap to also update EV elements
+const _originalUpdateMap = updateMap;
+updateMap = function(yearIdx) {
+  _originalUpdateMap(yearIdx);
+  updateEVTally(yearIdx);
+  buildEVChart(yearIdx);
+};
+
+// Initialize EV elements
+updateEVTally(0);
+buildEVChart(0);
+
+</script>
+</body>
+</html>
