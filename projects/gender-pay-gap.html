@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UK Gender Pay Gap Analysis — Emma Poh</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #1a1a2e; background: #fafafa; line-height: 1.7; font-size: 16px;
+        }
+        a { color: #2563eb; text-decoration: none; transition: color 0.2s; }
+        a:hover { color: #1d4ed8; }
+
+        nav {
+            position: fixed; top: 0; left: 0; right: 0;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e5e7eb; z-index: 100; padding: 16px 0;
+        }
+        nav .container { display: flex; justify-content: space-between; align-items: center; }
+        nav .logo { font-weight: 700; font-size: 1.1rem; color: #1a1a2e; }
+        nav .nav-links { display: flex; gap: 32px; list-style: none; }
+        nav .nav-links a { color: #64748b; font-size: 0.9rem; font-weight: 500; }
+        nav .nav-links a:hover { color: #1a1a2e; }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+        .project-hero {
+            padding: 120px 0 60px;
+            background: linear-gradient(135deg, #6D2E46, #A26769);
+            color: white;
+        }
+        .project-hero .breadcrumb { font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-bottom: 16px; }
+        .project-hero .breadcrumb a { color: rgba(255,255,255,0.8); }
+        .project-hero h1 { font-size: 2.5rem; font-weight: 700; margin-bottom: 16px; letter-spacing: -0.03em; }
+        .project-hero .tagline { font-size: 1.15rem; color: rgba(255,255,255,0.85); max-width: 700px; }
+        .project-meta { display: flex; gap: 24px; margin-top: 24px; flex-wrap: wrap; }
+        .meta-item { padding: 8px 16px; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 0.85rem; }
+        .meta-item .label { color: rgba(255,255,255,0.5); }
+        .meta-item .value { color: white; font-weight: 600; }
+
+        .project-content { padding: 60px 0; }
+        .project-content h2 {
+            font-size: 1.6rem; font-weight: 700; color: #0f172a;
+            margin: 48px 0 16px; letter-spacing: -0.02em;
+            padding-bottom: 8px; border-bottom: 2px solid #e5e7eb;
+        }
+        .project-content h2:first-child { margin-top: 0; }
+        .project-content p { color: #374151; margin-bottom: 16px; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 24px 0; }
+        .stat-card { background: white; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; text-align: center; }
+        .stat-card .number { font-size: 1.8rem; font-weight: 700; color: #6D2E46; line-height: 1.2; }
+        .stat-card .desc { font-size: 0.8rem; color: #64748b; margin-top: 4px; }
+
+        .finding { background: white; border: 1px solid #e5e7eb; border-radius: 10px; padding: 24px; margin: 16px 0; }
+        .finding .finding-header { font-weight: 600; color: #0f172a; margin-bottom: 8px; font-size: 1.05rem; }
+        .finding p { color: #475569; margin-bottom: 0; }
+        .finding .highlight { color: #6D2E46; font-weight: 700; }
+
+        .method-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+        .method-step { background: white; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; }
+        .method-step .step-num {
+            display: inline-block; width: 28px; height: 28px; line-height: 28px;
+            text-align: center; background: #6D2E46; color: white; border-radius: 50%;
+            font-size: 0.8rem; font-weight: 700; margin-bottom: 8px;
+        }
+        .method-step .step-title { font-weight: 600; color: #0f172a; margin-bottom: 4px; }
+        .method-step .step-desc { font-size: 0.9rem; color: #64748b; }
+
+        .tech-tags { display: flex; flex-wrap: wrap; gap: 10px; margin: 24px 0; }
+        .tech-tag { padding: 6px 16px; background: #f1f5f9; border-radius: 100px; font-size: 0.85rem; color: #475569; font-weight: 500; }
+
+        .project-cta { background: #f1f5f9; padding: 48px 0; text-align: center; }
+        .project-cta h2 { border: none; margin-bottom: 16px; }
+        .project-cta p { color: #64748b; margin-bottom: 24px; }
+        .cta-buttons { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+        .btn { display: inline-block; padding: 12px 28px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; }
+        .btn-primary { background: #6D2E46; color: white; }
+        .btn-primary:hover { background: #5a2238; color: white; }
+        .btn-outline { background: white; color: #6D2E46; border: 2px solid #6D2E46; }
+        .btn-outline:hover { background: #6D2E46; color: white; }
+
+        .learning-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+        .learning-card { background: white; border: 1px solid #e5e7eb; border-radius: 10px; padding: 20px; }
+        .learning-card h4 { font-weight: 600; color: #0f172a; margin-bottom: 6px; }
+        .learning-card p { font-size: 0.9rem; color: #64748b; margin: 0; }
+
+        .sql-highlights {
+            background: #2d1a24; border-radius: 10px; padding: 24px; margin: 24px 0; overflow-x: auto;
+        }
+        .sql-highlights code {
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem; color: #ECE2D0; line-height: 1.6; white-space: pre;
+        }
+        .sql-highlights .keyword { color: #d4a0b0; }
+        .sql-highlights .function { color: #e8b4b8; }
+        .sql-highlights .comment { color: #A26769; opacity: 0.6; }
+
+        footer { background: #0f172a; padding: 24px 0; text-align: center; color: #64748b; font-size: 0.85rem; }
+
+        @media (max-width: 768px) {
+            .project-hero h1 { font-size: 1.8rem; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .method-steps { grid-template-columns: 1fr; }
+            .learning-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="container">
+            <a href="../index.html" class="logo">Emma Poh</a>
+            <ul class="nav-links">
+                <li><a href="../index.html#projects">All Projects</a></li>
+                <li><a href="https://github.com/emmabiee" target="_blank">GitHub</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="project-hero">
+        <div class="container">
+            <div class="breadcrumb"><a href="../index.html">Portfolio</a> / Projects</div>
+            <h1>UK Gender Pay Gap Analysis</h1>
+            <p class="tagline">SQL-driven analysis of 10,174 UK employers — revealing that the pay gap is primarily a workforce composition issue, not a pay discrimination problem, with larger companies showing what structured policies can achieve.</p>
+            <div class="project-meta">
+                <div class="meta-item"><span class="label">Type</span><br><span class="value">GA Immersive — SQL Project</span></div>
+                <div class="meta-item"><span class="label">Dataset</span><br><span class="value">10,174 employers (250+ staff)</span></div>
+                <div class="meta-item"><span class="label">Coverage</span><br><span class="value">~60% of UK workforce</span></div>
+                <div class="meta-item"><span class="label">Tools</span><br><span class="value">PostgreSQL, Chart.js</span></div>
+            </div>
+        </div>
+    </section>
+
+    <div class="project-content">
+        <div class="container">
+
+            <h2>The Problem</h2>
+            <p>The UK mandates that employers with 250+ employees report their gender pay gap annually. But the headline figures — often reduced to a single percentage — can be misleading without context. A 100% gap at a football club doesn't mean the same thing as a 15% gap at a bank. The goal: use SQL to dig beneath the surface of 10,174 company filings, separate structural patterns from noise, and produce findings that could inform policy decisions rather than just generate headlines.</p>
+
+            <h2>Results at a Glance</h2>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="number">9.8%</div><div class="desc">Median Hourly Pay Gap</div></div>
+                <div class="stat-card"><div class="number">78%</div><div class="desc">Companies Favour Men</div></div>
+                <div class="stat-card"><div class="number">6</div><div class="desc">SQL Analysis Modules</div></div>
+                <div class="stat-card"><div class="number">40%</div><div class="desc">Female in Top Quartile</div></div>
+            </div>
+
+            <h2>Key Findings</h2>
+
+            <div class="finding">
+                <div class="finding-header"><span class="highlight">9.8% median gap</span> — men earn more across 78% of companies</div>
+                <p>Using the median of median hourly pay gaps (more robust than the mean, which is skewed by outliers in a 375-point range), men are paid 9.8% more per hour than women at the typical UK employer. Only 13% of companies report a female-favoured gap.</p>
+            </div>
+
+            <div class="finding">
+                <div class="finding-header">Pay gap <span class="highlight">decreases as company size increases</span></div>
+                <p>Companies with 250-499 employees average a 12.8% gap, while those with 20,000+ employees average 9.7%. Formal pay structures, transparent salary scales, public accountability, and active diversity policies — all more common in larger organisations — appear to narrow the gap.</p>
+            </div>
+
+            <div class="finding">
+                <div class="finding-header"><span class="highlight">Large gaps do not equal unfair pay</span></div>
+                <p>Football clubs and construction firms top the list at 100% — but this reflects male-dominated workforces (elite athletes vs admin staff), not pay discrimination for equal roles. The data is more meaningful when filtered by company size and analysed by sector using SIC codes.</p>
+            </div>
+
+            <div class="finding">
+                <div class="finding-header">The <span class="highlight">"leaky pipeline"</span> — women are 55% of bottom roles, 40% of top</div>
+                <p>Quartile analysis reveals the structural root of the pay gap: women are over-represented in the lowest-paid quartile and progressively under-represented as pay increases. This pattern is consistent across all company sizes, pointing to systemic barriers in career progression rather than unequal pay for equal work.</p>
+            </div>
+
+            <h2>Analysis Approach</h2>
+            <div class="method-steps">
+                <div class="method-step"><div class="step-num">1</div><div class="step-title">Data Quality Assessment</div><div class="step-desc">Identified 361 late submissions, 3,700 missing URLs, and excluded four bonus columns with >25% ambiguous zeros.</div></div>
+                <div class="method-step"><div class="step-num">2</div><div class="step-title">National Pay Gap</div><div class="step-desc">Calculated the 9.8% median using PERCENTILE_CONT, justified median over mean, mapped the direction breakdown.</div></div>
+                <div class="method-step"><div class="step-num">3</div><div class="step-title">Company Size Analysis</div><div class="step-desc">Grouped by employer size bands to reveal the inverse size-gap relationship. Attributed to structural and policy differences.</div></div>
+                <div class="method-step"><div class="step-num">4</div><div class="step-title">Extreme Companies</div><div class="step-desc">Identified the most skewed employers with DENSE_RANK, then filtered by size to surface the most impactful cases.</div></div>
+                <div class="method-step"><div class="step-num">5</div><div class="step-title">Sector Analysis</div><div class="step-desc">Mapped SIC codes to sectors. Education (25.7%) and construction (24.3%) lead; security is the only female-favoured sector.</div></div>
+                <div class="method-step"><div class="step-num">6</div><div class="step-title">Workforce Quartiles</div><div class="step-desc">Analysed female representation across pay quartiles by company size — revealing the consistent "leaky pipeline" pattern.</div></div>
+            </div>
+
+            <h2>SQL Techniques Used</h2>
+            <p>All queries use PostgreSQL syntax, showcasing intermediate-to-advanced SQL patterns:</p>
+            <div class="sql-highlights">
+                <code><span class="comment">-- Robust median calculation with outlier context</span>
+<span class="keyword">SELECT</span>
+    <span class="function">MAX</span>(diffmedianhourlypercent)  <span class="keyword">AS</span> highest_male_bias,
+    <span class="function">MIN</span>(diffmedianhourlypercent)  <span class="keyword">AS</span> highest_female_bias,
+    <span class="function">PERCENTILE_CONT</span>(0.5) <span class="keyword">WITHIN GROUP</span>
+        (<span class="keyword">ORDER BY</span> diffmedianhourlypercent) <span class="keyword">AS</span> median_pay_gap
+<span class="keyword">FROM</span> gender_pay_gap_21_22
+<span class="keyword">WHERE</span> diffmedianhourlypercent <span class="keyword">IS NOT NULL</span>;</code>
+            </div>
+            <p>Key patterns include PERCENTILE_CONT for median calculation, DENSE_RANK for tied rankings, CASE expressions for categorisation, HAVING for minimum sample sizes, and SIC code parsing with LEFT() for sector grouping.</p>
+
+            <h2>Technical Stack</h2>
+            <div class="tech-tags">
+                <span class="tech-tag">PostgreSQL</span>
+                <span class="tech-tag">SQL</span>
+                <span class="tech-tag">Chart.js</span>
+                <span class="tech-tag">UK Gender Pay Gap Service</span>
+            </div>
+
+            <h2>What I Learned</h2>
+            <div class="learning-grid">
+                <div class="learning-card">
+                    <h4>Context Changes Everything</h4>
+                    <p>A 100% pay gap at a football club and a 15% gap at a bank tell completely different stories. Learning to question surface-level statistics and dig into the structural reasons behind them was the most valuable takeaway.</p>
+                </div>
+                <div class="learning-card">
+                    <h4>Data Quality Comes First</h4>
+                    <p>The bonus columns looked usable until I checked — 25%+ zeros with no way to distinguish missing from genuine. This taught me to always audit data quality before building any analysis on top of it.</p>
+                </div>
+                <div class="learning-card">
+                    <h4>Metric Selection Matters</h4>
+                    <p>Choosing median over mean wasn't arbitrary — with a 375-point range, the mean would be distorted by outliers. Justifying this choice explicitly is something I'll carry into every future analysis.</p>
+                </div>
+                <div class="learning-card">
+                    <h4>Policy-Ready Analysis</h4>
+                    <p>Moving from "here are the numbers" to "here's what should change" pushed me to think about who would use these findings and what decisions they'd need to make.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <section class="project-cta">
+        <div class="container">
+            <h2>Explore the Full Analysis</h2>
+            <p>Browse the SQL queries, view the interactive dashboard, or read the extended report.</p>
+            <div class="cta-buttons">
+                <a href="https://github.com/emmabiee/gender-pay-gap" class="btn btn-outline" target="_blank">View on GitHub</a>
+                <a href="gender-pay-gap-dashboard.html" class="btn btn-primary">View Dashboard</a>
+                <a href="../index.html" class="btn btn-outline">Back to Portfolio</a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>Emma Poh — Data Analytics Portfolio, 2026</p>
+        </div>
+    </footer>
+
+</body>
+</html>

@@ -10,7 +10,7 @@ Personal portfolio showcasing data analytics projects, technical skills, and car
 |---------|-------------|-------|
 | **Banking Fraud Detection** | Fraud risk scoring model with ROC-AUC > 0.95 using transaction + clickstream data | [Details](https://emmabiee.github.io/projects/fraud-detection.html) · [Dashboard](https://emmabiee.github.io/projects/fraud-dashboard.html) · [Repo](https://github.com/emmabiee/banking-fraud-detection) |
 | **HDB Resale Price Prediction** | LightGBM model (R² = 0.88) predicting Singapore flat prices across 150K+ transactions | [Details](https://emmabiee.github.io/projects/hdb-resale.html) · [Calculator](https://hdb-resale-price-predictor-emmabiee.streamlit.app/) · [Repo](https://github.com/emmabiee/hdb-resale-price-predictor) |
-| **E-commerce Customer Retention** | SQL-driven retention analysis with cohort heatmaps, RFM segmentation, and CLV estimation | [Details](https://emmabiee.github.io/projects/ecommerce-retention.html) · [Dashboard](https://public.tableau.com/views/E-commerceCustomerRetentionAnalysis/Dashboard1) · [Repo](https://github.com/emmabiee/ecommerce-customer-retention) |
+| **UK Gender Pay Gap Analysis** | SQL analysis of 10,174 UK employers — 9.8% median gap driven by workforce composition, not discrimination | [Details](https://emmabiee.github.io/projects/gender-pay-gap.html) · [Dashboard](https://emmabiee.github.io/projects/gender-pay-gap-dashboard.html) · [Repo](https://github.com/emmabiee/gender-pay-gap) |
 | **FAA Airline Delays Analysis** | Power BI dashboard analysing 2.7M U.S. flights — 72% of delays are controllable, not weather | [Details](https://emmabiee.github.io/projects/airline-delays.html) · [Dashboard](https://emmabiee.github.io/projects/airline-delays-dashboard.html) |
 
 ## Tech Stack

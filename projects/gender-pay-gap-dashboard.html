@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UK Gender Pay Gap Dashboard — 2021/22</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f0eb; color: #333; }
+.header { background: linear-gradient(135deg, #6D2E46, #A26769); color: white; padding: 24px 40px; }
+.header h1 { font-size: 28px; font-weight: 600; }
+.header p { opacity: 0.85; margin-top: 4px; font-size: 14px; }
+.nav-tabs { display: flex; background: #5a2238; padding: 0 40px; gap: 0; }
+.nav-tab { padding: 12px 24px; color: rgba(255,255,255,0.7); cursor: pointer; border-bottom: 3px solid transparent; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+.nav-tab:hover { color: white; background: rgba(255,255,255,0.1); }
+.nav-tab.active { color: white; border-bottom-color: #ECE2D0; background: rgba(255,255,255,0.1); }
+.container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+.page { display: none; }
+.page.active { display: block; }
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.kpi-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); text-align: center; }
+.kpi-card .label { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.kpi-card .value { font-size: 36px; font-weight: 700; color: #6D2E46; }
+.kpi-card .sub { font-size: 12px; color: #aaa; margin-top: 4px; }
+.chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+.chart-row.full { grid-template-columns: 1fr; }
+.chart-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.chart-card h3 { font-size: 16px; color: #6D2E46; margin-bottom: 4px; font-weight: 600; }
+.chart-card .chart-subtitle { font-size: 13px; color: #999; margin-bottom: 14px; line-height: 1.4; }
+.chart-container { position: relative; height: 350px; }
+.chart-container.tall { height: 420px; }
+.exec-summary { background: white; border-left: 4px solid #A26769; border-radius: 0 12px 12px 0; padding: 20px 24px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.exec-summary h2 { font-size: 17px; color: #6D2E46; margin-bottom: 10px; font-weight: 700; }
+.exec-summary p { font-size: 14px; line-height: 1.7; color: #444; }
+.exec-summary .hl { font-weight: 600; color: #6D2E46; }
+.recommendations { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-top: 8px; }
+.recommendations h3 { font-size: 16px; color: #6D2E46; margin-bottom: 16px; font-weight: 600; }
+.rec-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.rec-card { border: 1px solid #e8e0d8; border-radius: 10px; padding: 18px; transition: box-shadow 0.2s; }
+.rec-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.rec-card .rec-num { font-size: 12px; font-weight: 700; color: #A26769; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.rec-card .rec-title { font-size: 14px; font-weight: 600; color: #6D2E46; margin-bottom: 6px; }
+.rec-card .rec-body { font-size: 13px; color: #555; line-height: 1.5; }
+.caveat-box { background: #fdf8f4; border: 1px solid #e8ddd4; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+.caveat-box h4 { font-size: 14px; font-weight: 600; color: #6D2E46; margin-bottom: 6px; }
+.caveat-box p { font-size: 13px; color: #666; line-height: 1.6; }
+.footer { text-align: center; padding: 24px; font-size: 12px; color: #999; }
+.footer a { color: #6D2E46; text-decoration: none; }
+@media (max-width: 900px) { .chart-row { grid-template-columns: 1fr; } .kpi-row { grid-template-columns: 1fr 1fr; } .rec-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>UK Gender Pay Gap Dashboard</h1>
+  <p>Analysis of 10,174 UK employers (250+ employees) | Reporting Year 2021/22 | Source: UK Gender Pay Gap Service</p>
+</div>
+
+<div class="nav-tabs">
+  <div class="nav-tab active" onclick="showPage('overview', this)">Overview</div>
+  <div class="nav-tab" onclick="showPage('sectors', this)">Sectors & Size</div>
+  <div class="nav-tab" onclick="showPage('workforce', this)">Workforce Composition</div>
+  <div class="nav-tab" onclick="showPage('caveats', this)">Caveats & Recommendations</div>
+</div>
+
+<div class="container">
+
+<!-- PAGE 1: OVERVIEW -->
+<div id="overview" class="page active">
+
+  <div class="exec-summary">
+    <h2>Executive Summary</h2>
+    <p>
+      Across 10,174 UK employers, <span class="hl">men are paid a median 9.8% more per hour than women</span>. 78% of companies report a male-favoured pay gap, while only 13% favour women — the remaining 9% report zero gap.
+      The gap is not primarily about unequal pay for equal work. It reflects <span class="hl">structural workforce composition</span>: women are over-represented in lower-pay quartiles (55% of lowest-paid roles) and under-represented in top quartiles (40%).
+      Company size matters — <span class="hl">larger firms report smaller gaps</span>, likely due to formal pay structures, public accountability, and diversity policies.
+      Sectors with the widest gaps (education, construction, financial services) are driven by occupational segregation, not pay discrimination. Policy efforts should focus on workforce composition and progression pathways rather than headline gap figures alone.
+    </p>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="label">Median Pay Gap</div>
+      <div class="value">9.8%</div>
+      <div class="sub">Men earn more per hour</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Companies Analysed</div>
+      <div class="value">10,174</div>
+      <div class="sub">UK employers with 250+ staff</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Male-Favoured</div>
+      <div class="value">78%</div>
+      <div class="sub">7,951 of 10,174 companies</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Female in Top Quartile</div>
+      <div class="value">40%</div>
+      <div class="sub">Avg across all employers</div>
+    </div>
+  </div>
+
+  <div class="chart-row">
+    <div class="chart-card">
+      <h3>Most companies cluster between 0–20% gap — but a long tail extends to 100%</h3>
+      <div class="chart-subtitle">Distribution of median hourly pay gaps across all 10,174 employers. Positive = men paid more, negative = women paid more.</div>
+      <div class="chart-container tall"><canvas id="chart-dist"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>78% of employers pay men more — only 13% favour women</h3>
+      <div class="chart-subtitle">Breakdown by pay gap direction. Zero-gap companies (9%) may reflect genuinely equal pay or incomplete reporting.</div>
+      <div class="chart-container tall"><canvas id="chart-direction"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 2: SECTORS & SIZE -->
+<div id="sectors" class="page">
+  <div class="chart-row">
+    <div class="chart-card">
+      <h3>Larger companies report smaller pay gaps — formal structures help</h3>
+      <div class="chart-subtitle">Average median hourly pay gap by employer size band. The inverse relationship suggests pay transparency and diversity policies in larger firms narrow the gap.</div>
+      <div class="chart-container tall"><canvas id="chart-size"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Education tops the gap at 25.7% — driven by workforce composition, not unequal pay</h3>
+      <div class="chart-subtitle">Top 10 sectors (SIC code) by average median hourly pay gap. Male-dominated sectors like construction and finance cluster at the top.</div>
+      <div class="chart-container tall"><canvas id="chart-sectors"></canvas></div>
+    </div>
+  </div>
+  <div class="chart-row full">
+    <div class="chart-card">
+      <h3>Some sectors actually favour women — security and residential care show negative gaps</h3>
+      <div class="chart-subtitle">Sectors with the smallest or female-favoured pay gaps. These tend to have more balanced or female-majority workforces.</div>
+      <div class="chart-container"><canvas id="chart-sectors-low"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 3: WORKFORCE COMPOSITION -->
+<div id="workforce" class="page">
+  <div class="chart-row full">
+    <div class="chart-card">
+      <h3>Women dominate the lowest-paid roles but thin out near the top — the "leaky pipeline"</h3>
+      <div class="chart-subtitle">Average female representation across pay quartiles, by company size. Women make up 55% of lowest-paid roles but only 40% of top quartile across all sizes — explaining much of the headline gap.</div>
+      <div class="chart-container tall"><canvas id="chart-quartiles"></canvas></div>
+    </div>
+  </div>
+  <div class="chart-row full">
+    <div class="chart-card">
+      <h3>The quartile drop-off is consistent across all company sizes</h3>
+      <div class="chart-subtitle">Female % in each pay quartile by employer size band. Even the largest firms (20,000+) show the same pattern: high female representation at the bottom, declining toward the top.</div>
+      <div class="chart-container tall"><canvas id="chart-quartile-sizes"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 4: CAVEATS & RECOMMENDATIONS -->
+<div id="caveats" class="page">
+  <div class="chart-card" style="margin-bottom:24px">
+    <h3>Important Caveats</h3>
+    <div class="chart-subtitle">What the gender pay gap is — and what it is not.</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:12px">
+      <div class="caveat-box">
+        <h4>Pay gap is not equal pay</h4>
+        <p>The pay gap measures workforce composition differences, not whether men and women are paid equally for the same role. A company can have a large gap with zero pay discrimination if men dominate senior roles.</p>
+      </div>
+      <div class="caveat-box">
+        <h4>Self-reported, unaudited data</h4>
+        <p>Companies self-report their figures to the Gender Pay Gap Service. There is no independent audit, making the data only as reliable as each employer's internal calculation.</p>
+      </div>
+      <div class="caveat-box">
+        <h4>No weighting by company size</h4>
+        <p>A firm with 250 employees counts the same as one with 25,000. This means the national average reflects a typical company, not a typical employee experience.</p>
+      </div>
+      <div class="caveat-box">
+        <h4>Missing context</h4>
+        <p>No part-time/full-time split, no seniority or role data, no demographic breakdown. The gap figure alone cannot identify root causes without this additional context.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="recommendations">
+    <h3>Recommendations for Improving the Data and Reducing the Gap</h3>
+    <p style="font-size:14px; color:#555; margin-bottom:20px; line-height:1.6;">Based on the analysis, these actions would improve both data quality and structural outcomes.</p>
+    <div class="rec-grid">
+      <div class="rec-card">
+        <div class="rec-num">Data Quality 1</div>
+        <div class="rec-title">Mandate exact employee counts by gender</div>
+        <div class="rec-body">Current size bands (250-499, etc.) prevent employee-weighted national averages. Exact headcounts would allow weighting larger employers proportionally.</div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-num">Data Quality 2</div>
+        <div class="rec-title">Require role and seniority reporting</div>
+        <div class="rec-body">Without role data, we can't distinguish structural gaps from pay discrimination. Adding job-level breakdowns would enable like-for-like comparisons.</div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-num">Data Quality 3</div>
+        <div class="rec-title">Fix bonus data reporting</div>
+        <div class="rec-body">Over 25% of bonus fields are zero — but zero could mean no bonus, no gap, or missing data. Clearer categories would make bonus analysis viable.</div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-num">Policy 1</div>
+        <div class="rec-title">Focus on progression, not just pay</div>
+        <div class="rec-body">The quartile data shows women are 55% of bottom roles but 40% of top roles. Closing the gap requires better promotion pipelines and flexible senior roles.</div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-num">Policy 2</div>
+        <div class="rec-title">Target sector-specific interventions</div>
+        <div class="rec-body">Education (25.7% gap) and construction (24.3%) need different solutions — one needs senior leadership balance, the other needs workforce entry pathways.</div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-num">Policy 3</div>
+        <div class="rec-title">Replicate what large firms do well</div>
+        <div class="rec-body">The inverse size-gap relationship shows that formal pay structures and transparency work. Extending these practices to mid-size firms could narrow gaps at scale.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="footer">
+  Built by <a href="https://emmabiee.github.io" target="_blank">Emma Poh</a> | Data: UK Gender Pay Gap Service, 2021/22
+</div>
+
+<script>
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+}
+
+// Distribution histogram
+new Chart(document.getElementById('chart-dist'), {
+  type: 'bar',
+  data: {
+    labels: ['< -20%','-20 to -10%','-10 to 0%','0%','0 to 10%','10 to 20%','20 to 30%','30 to 40%','> 40%'],
+    datasets: [{
+      label: 'Companies',
+      data: [160, 224, 978, 861, 2959, 2160, 1455, 819, 558],
+      backgroundColor: ['#A26769','#A26769','#A26769','#ccc','#6D2E46','#6D2E46','#6D2E46','#6D2E46','#6D2E46'],
+      borderRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false },
+      tooltip: { callbacks: { label: ctx => `${ctx.raw.toLocaleString()} companies` } }
+    },
+    scales: {
+      x: { title: { display: true, text: 'Median Hourly Pay Gap (%)' } },
+      y: { title: { display: true, text: 'Number of Companies' } }
+    }
+  }
+});
+
+// Direction donut
+new Chart(document.getElementById('chart-direction'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Male-favoured (78%)','Female-favoured (13%)','Zero gap (9%)'],
+    datasets: [{
+      data: [7951, 1362, 861],
+      backgroundColor: ['#6D2E46','#A26769','#ECE2D0'],
+      borderWidth: 2, borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { font: { size: 13 } } } }
+  }
+});
+
+// Size chart
+new Chart(document.getElementById('chart-size'), {
+  type: 'bar',
+  data: {
+    labels: ['250-499','500-999','1,000-4,999','5,000-19,999','20,000+'],
+    datasets: [{
+      label: 'Avg Median Pay Gap (%)',
+      data: [12.78, 12.65, 11.56, 10.25, 9.73],
+      backgroundColor: ['#6D2E46','#7a3652','#87405e','#A26769','#b8888a'],
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: { title: { display: true, text: 'Avg Median Hourly Pay Gap (%)' }, beginAtZero: true }
+    }
+  }
+});
+
+// Top sectors
+new Chart(document.getElementById('chart-sectors'), {
+  type: 'bar',
+  data: {
+    labels: ['Education','Construction','Repair & Install','Financial Services','Air Transport','Banking & Finance','Specialist Construction','Insurance','Architecture & Eng','Legal & Accounting'],
+    datasets: [{
+      label: 'Avg Pay Gap (%)',
+      data: [25.73, 24.31, 24.12, 23.65, 23.58, 22.61, 22.03, 21.17, 20.49, 19.63],
+      backgroundColor: '#6D2E46',
+      borderRadius: 4
+    }]
+  },
+  options: {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { x: { title: { display: true, text: 'Avg Median Hourly Pay Gap (%)' } } }
+  }
+});
+
+// Bottom sectors
+new Chart(document.getElementById('chart-sectors-low'), {
+  type: 'bar',
+  data: {
+    labels: ['Security & Investigation','Residential Care','Social Work','Waste Collection','Wood Products'],
+    datasets: [{
+      label: 'Avg Pay Gap (%)',
+      data: [-3.52, 1.37, 2.38, 2.79, 1.46],
+      backgroundColor: ctx => ctx.raw < 0 ? '#A26769' : '#ECE2D0',
+      borderRadius: 6
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: { y: { title: { display: true, text: 'Avg Median Hourly Pay Gap (%)' } } }
+  }
+});
+
+// Quartile chart (all employers avg)
+new Chart(document.getElementById('chart-quartiles'), {
+  type: 'bar',
+  data: {
+    labels: ['Lower Quartile\n(Lowest paid)','Lower Middle\nQuartile','Upper Middle\nQuartile','Top Quartile\n(Highest paid)'],
+    datasets: [
+      { label: 'Female %', data: [54.8, 50.2, 46.0, 40.4], backgroundColor: '#A26769', borderRadius: 4 },
+      { label: 'Male %', data: [45.2, 49.8, 54.0, 59.6], backgroundColor: '#6D2E46', borderRadius: 4 }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'top' } },
+    scales: {
+      x: { stacked: true },
+      y: { stacked: true, max: 100, title: { display: true, text: '% of Workforce' } }
+    }
+  }
+});
+
+// Quartile by company size
+const qLabels = ['Lower Q','Lower Mid Q','Upper Mid Q','Top Q'];
+const qColors = ['#6D2E46','#7a3652','#87405e','#A26769','#b8888a'];
+const qData = {
+  '250-499':     [54.2, 49.8, 45.3, 39.9],
+  '500-999':     [54.3, 49.3, 45.0, 40.2],
+  '1,000-4,999': [55.5, 51.1, 46.8, 41.5],
+  '5,000-19,999':[59.8, 57.4, 53.6, 46.2],
+  '20,000+':     [56.6, 53.0, 46.5, 39.3]
+};
+new Chart(document.getElementById('chart-quartile-sizes'), {
+  type: 'line',
+  data: {
+    labels: qLabels,
+    datasets: Object.entries(qData).map(([name, data], i) => ({
+      label: name, data: data, borderColor: qColors[i], backgroundColor: qColors[i]+'33',
+      fill: false, tension: 0.3, pointRadius: 5, pointHoverRadius: 8, borderWidth: 3
+    }))
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } },
+      annotation: { annotations: { line50: { type: 'line', yMin: 50, yMax: 50, borderColor: '#ccc', borderDash: [5,5], borderWidth: 1 } } }
+    },
+    scales: { y: { title: { display: true, text: 'Female % of Quartile' }, min: 30, max: 65 } }
+  }
+});
+</script>
+</body>
+</html>
