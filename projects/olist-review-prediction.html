@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Olist Negative-Review Prediction — Emma Poh</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #1a1a2e; background: #fafafa; line-height: 1.7; font-size: 16px;
+        }
+        a { color: #2563eb; text-decoration: none; transition: color 0.2s; }
+        a:hover { color: #1d4ed8; }
+
+        /* Navigation */
+        nav {
+            position: fixed; top: 0; left: 0; right: 0;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e5e7eb; z-index: 100; padding: 16px 0;
+        }
+        nav .container { display: flex; justify-content: space-between; align-items: center; }
+        nav .logo { font-weight: 700; font-size: 1.1rem; color: #1a1a2e; }
+        nav .nav-links { display: flex; gap: 32px; list-style: none; }
+        nav .nav-links a { color: #64748b; font-size: 0.9rem; font-weight: 500; }
+        nav .nav-links a:hover { color: #1a1a2e; }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+        /* Hero */
+        .project-hero {
+            padding: 120px 0 60px;
+            background: linear-gradient(135deg, #0f766e, #14b8a6);
+            color: white;
+        }
+        .project-hero .breadcrumb {
+            font-size: 0.9rem; color: rgba(255,255,255,0.6); margin-bottom: 16px;
+        }
+        .project-hero .breadcrumb a { color: rgba(255,255,255,0.8); }
+        .project-hero h1 {
+            font-size: 2.5rem; font-weight: 700; margin-bottom: 16px;
+            letter-spacing: -0.03em;
+        }
+        .project-hero .tagline { font-size: 1.15rem; color: rgba(255,255,255,0.85); max-width: 700px; }
+        .project-meta {
+            display: flex; gap: 24px; margin-top: 24px; flex-wrap: wrap;
+        }
+        .meta-item {
+            padding: 8px 16px; background: rgba(255,255,255,0.1);
+            border-radius: 8px; font-size: 0.85rem;
+        }
+        .meta-item .label { color: rgba(255,255,255,0.5); }
+        .meta-item .value { color: white; font-weight: 600; }
+
+        /* Content */
+        .project-content { padding: 60px 0; }
+        .project-content h2 {
+            font-size: 1.6rem; font-weight: 700; color: #0f172a;
+            margin: 48px 0 16px; letter-spacing: -0.02em;
+            padding-bottom: 8px; border-bottom: 2px solid #e5e7eb;
+        }
+        .project-content h2:first-child { margin-top: 0; }
+        .project-content h3 {
+            font-size: 1.15rem; font-weight: 600; color: #1e293b;
+            margin: 32px 0 12px;
+        }
+        .project-content p { color: #374151; margin-bottom: 16px; }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+            margin: 24px 0;
+        }
+        .stat-card {
+            background: white; border: 1px solid #e5e7eb; border-radius: 10px;
+            padding: 20px; text-align: center;
+        }
+        .stat-card .number {
+            font-size: 1.8rem; font-weight: 700; color: #0d9488;
+            line-height: 1.2;
+        }
+        .stat-card .desc {
+            font-size: 0.8rem; color: #64748b; margin-top: 4px;
+        }
+
+        /* Findings */
+        .finding {
+            background: white; border: 1px solid #e5e7eb; border-radius: 10px;
+            padding: 24px; margin: 16px 0;
+        }
+        .finding .finding-header {
+            font-weight: 600; color: #0f172a; margin-bottom: 8px; font-size: 1.05rem;
+        }
+        .finding p { color: #475569; margin-bottom: 0; }
+        .finding .highlight {
+            color: #0d9488; font-weight: 700;
+        }
+
+        /* Method Steps */
+        .method-steps {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+            margin: 24px 0;
+        }
+        .method-step {
+            background: white; border: 1px solid #e5e7eb; border-radius: 10px;
+            padding: 20px;
+        }
+        .method-step .step-num {
+            display: inline-block; width: 28px; height: 28px; line-height: 28px;
+            text-align: center; background: #0d9488; color: white; border-radius: 50%;
+            font-size: 0.8rem; font-weight: 700; margin-bottom: 8px;
+        }
+        .method-step .step-title { font-weight: 600; color: #0f172a; margin-bottom: 4px; }
+        .method-step .step-desc { font-size: 0.9rem; color: #64748b; }
+
+        /* Tech Tags */
+        .tech-tags { display: flex; flex-wrap: wrap; gap: 10px; margin: 24px 0; }
+        .tech-tag {
+            padding: 6px 16px; background: #f1f5f9; border-radius: 100px;
+            font-size: 0.85rem; color: #475569; font-weight: 500;
+        }
+
+        /* CTA */
+        .project-cta {
+            background: #f1f5f9; padding: 48px 0; text-align: center;
+        }
+        .project-cta h2 { border: none; margin-bottom: 16px; }
+        .project-cta p { color: #64748b; margin-bottom: 24px; }
+        .cta-buttons { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+        .btn {
+            display: inline-block; padding: 12px 28px; border-radius: 8px;
+            font-weight: 600; font-size: 0.95rem; transition: all 0.2s;
+        }
+        .btn-primary { background: #0d9488; color: white; }
+        .btn-primary:hover { background: #0f766e; color: white; }
+        .btn-outline { background: white; color: #0d9488; border: 2px solid #0d9488; }
+        .btn-outline:hover { background: #0d9488; color: white; }
+
+        /* Learning */
+        .learning-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0;
+        }
+        .learning-card {
+            background: white; border: 1px solid #e5e7eb; border-radius: 10px;
+            padding: 20px;
+        }
+        .learning-card h4 { font-weight: 600; color: #0f172a; margin-bottom: 6px; }
+        .learning-card p { font-size: 0.9rem; color: #64748b; margin: 0; }
+
+        footer {
+            background: #0f172a; padding: 24px 0; text-align: center;
+            color: #64748b; font-size: 0.85rem;
+        }
+
+        @media (max-width: 768px) {
+            .project-hero h1 { font-size: 1.8rem; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .method-steps { grid-template-columns: 1fr; }
+            .learning-grid { grid-template-columns: 1fr; }
+            .project-meta { gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="container">
+            <a href="../index.html" class="logo">Emma Poh</a>
+            <ul class="nav-links">
+                <li><a href="../index.html#projects">All Projects</a></li>
+                <li><a href="https://github.com/emmabiee" target="_blank">GitHub</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Project Hero -->
+    <section class="project-hero">
+        <div class="container">
+            <div class="breadcrumb"><a href="../index.html">Portfolio</a> / Projects</div>
+            <h1>Olist Negative-Review Prediction</h1>
+            <p class="tagline">An end-to-end machine-learning early-warning system that predicts which Olist e-commerce orders will receive a negative (1&ndash;2 star) customer review &mdash; so the Customer-Experience team can step in before the customer is unhappy.</p>
+            <div class="project-meta">
+                <div class="meta-item">
+                    <span class="label">Type</span><br>
+                    <span class="value">End-to-End ML Project</span>
+                </div>
+                <div class="meta-item">
+                    <span class="label">Dataset</span><br>
+                    <span class="value">99,441 orders &middot; Olist (Brazil)</span>
+                </div>
+                <div class="meta-item">
+                    <span class="label">Best Model</span><br>
+                    <span class="value">HistGradientBoosting</span>
+                </div>
+                <div class="meta-item">
+                    <span class="label">Tools</span><br>
+                    <span class="value">Python, scikit-learn, SQLite</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Content -->
+    <div class="project-content">
+        <div class="container">
+
+            <h2>The Problem</h2>
+            <p>Olist is a Brazilian e-commerce marketplace that connects thousands of small sellers to large online storefronts. After every delivery, the customer leaves a 1&ndash;5 star review &mdash; and those reviews are public, drive seller reputation, and are a leading indicator of churn.</p>
+            <p>A negative review (1&ndash;2 stars) is costly, and by the time it is written the damage is already done: roughly one delivered order in eight receives one. Rather than being handed a fixed brief, I had to define my own problem from the raw dataset. The one I chose: <strong>predict, at or shortly after an order is placed, which orders are at high risk of a negative review</strong> &mdash; so the Customer-Experience team can intervene proactively (expedite a slow shipment, send a proactive apology, offer a goodwill voucher) instead of reacting after the fact.</p>
+
+            <h2>Results at a Glance</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="number">0.77</div>
+                    <div class="desc">ROC-AUC (Test Set)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">0.49</div>
+                    <div class="desc">PR-AUC (3.8&times; Baseline)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">95,832</div>
+                    <div class="desc">Orders Modelled</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">3</div>
+                    <div class="desc">Models Compared</div>
+                </div>
+            </div>
+
+            <h2>Key Findings</h2>
+
+            <div class="finding">
+                <div class="finding-header">Late delivery is the <span class="highlight">dominant driver</span></div>
+                <p>When an order arrives after its promised date, the negative-review rate climbs sharply &mdash; and keeps climbing the later it is. In the final model, <code>delivery_vs_estimate_days</code> (actual minus estimated delivery date) is the single most important feature by a wide margin, dwarfing every other signal. The clearest lever the business has is simply keeping its delivery promise.</p>
+            </div>
+
+            <div class="finding">
+                <div class="finding-header">Negative reviews are a <span class="highlight">costly minority</span></div>
+                <p>Only 12.8% of delivered orders receive a 1&ndash;2 star review &mdash; common enough to hurt seller reputation, rare enough that plain accuracy is misleading (predicting "always positive" already scores ~87%). The project is therefore evaluated on PR-AUC with class-weighted models and a stratified split.</p>
+            </div>
+
+            <div class="finding">
+                <div class="finding-header">Shipping-cost perception <span class="highlight">measurably hurts</span></div>
+                <p>Orders with a high freight-to-price ratio &mdash; where delivery feels expensive relative to the goods themselves &mdash; draw harsher reviews. It is a concrete, actionable lever for the pricing team: freight subsidies or clearer shipping-cost messaging where the ratio is extreme.</p>
+            </div>
+
+            <div class="finding">
+                <div class="finding-header">Operational complexity raises risk</div>
+                <p>Orders split across multiple sellers, and those with longer carrier-handover and transit times, review worse &mdash; consistent with "more moving parts, more chances to disappoint." Category and destination state add secondary signal, much of it acting through delivery time.</p>
+            </div>
+
+            <h2>Methodology</h2>
+            <div class="method-steps">
+                <div class="method-step">
+                    <div class="step-num">1</div>
+                    <div class="step-title">Data Quality Audit</div>
+                    <div class="step-desc">Profiled an 11-table SQLite database (~99K orders). Diagnosed missing delivery timestamps as undelivered orders, de-duplicated reviews, and fixed the dataset's known column-name typos.</div>
+                </div>
+                <div class="method-step">
+                    <div class="step-num">2</div>
+                    <div class="step-title">Exploratory Analysis</div>
+                    <div class="step-desc">Built an order-level base table by aggregating nine normalised tables, then tested each hypothesised driver against the negative-review rate with bivariate analysis and visualisations.</div>
+                </div>
+                <div class="method-step">
+                    <div class="step-num">3</div>
+                    <div class="step-title">Feature Engineering</div>
+                    <div class="step-desc">Engineered 35 leakage-free features (delivery timeline, freight ratio, order composition, payment, product, geography) &mdash; explicitly excluding anything generated by the review itself.</div>
+                </div>
+                <div class="method-step">
+                    <div class="step-num">4</div>
+                    <div class="step-title">Preprocessing Pipeline</div>
+                    <div class="step-desc">A scikit-learn ColumnTransformer imputes, scales and one-hot-encodes with rare-level pooling &mdash; fitted inside the model pipeline so test statistics never leak into training.</div>
+                </div>
+                <div class="method-step">
+                    <div class="step-num">5</div>
+                    <div class="step-title">Model Comparison</div>
+                    <div class="step-desc">Three models &mdash; Logistic Regression, Random Forest and HistGradientBoosting &mdash; cross-validated with stratified k-fold and ranked on PR-AUC; the best is selected automatically.</div>
+                </div>
+                <div class="method-step">
+                    <div class="step-num">6</div>
+                    <div class="step-title">Evaluation & Delivery</div>
+                    <div class="step-desc">Held-out test scoring (PR-AUC, ROC-AUC, precision/recall, confusion matrix, permutation importance), a decision threshold tuned on out-of-fold predictions, and a risk-ranked CSV of every order.</div>
+                </div>
+            </div>
+
+            <h2>Technical Stack</h2>
+            <div class="tech-tags">
+                <span class="tech-tag">Python 3.10+</span>
+                <span class="tech-tag">pandas</span>
+                <span class="tech-tag">NumPy</span>
+                <span class="tech-tag">scikit-learn</span>
+                <span class="tech-tag">SQLite</span>
+                <span class="tech-tag">Matplotlib</span>
+                <span class="tech-tag">Seaborn</span>
+                <span class="tech-tag">Jupyter</span>
+                <span class="tech-tag">pytest</span>
+                <span class="tech-tag">GitHub Actions</span>
+            </div>
+
+            <h2>What I Learned</h2>
+            <div class="learning-grid">
+                <div class="learning-card">
+                    <h4>Preventing Target Leakage</h4>
+                    <p>A review only exists after delivery, so every feature had to be restricted to information available at order time. Auditing and excluding leakage columns was the single most important &mdash; and easiest to get wrong &mdash; part of the build.</p>
+                </div>
+                <div class="learning-card">
+                    <h4>Metrics for Imbalanced Data</h4>
+                    <p>With only ~13% positives, accuracy flatters a useless model. Leading with PR-AUC, applying class weighting, and tuning the decision threshold on out-of-fold predictions kept the evaluation honest.</p>
+                </div>
+                <div class="learning-card">
+                    <h4>Engineering a Reusable Pipeline</h4>
+                    <p>Instead of a single notebook, the solution is a config-driven <code>src/</code> package with automated tests and CI. A new experiment is a one-line YAML edit, not a code rewrite.</p>
+                </div>
+                <div class="learning-card">
+                    <h4>From Prediction to Decision</h4>
+                    <p>A model is only useful if someone acts on it. Framing the output as a risk-ranked queue for the Customer-Experience team turned a probability into an operational tool.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- CTA -->
+    <section class="project-cta">
+        <div class="container">
+            <h2>Explore the Full Analysis</h2>
+            <p>Browse the complete EDA notebook, the end-to-end ML pipeline, and the source code.</p>
+            <div class="cta-buttons">
+                <a href="https://github.com/emmabiee/olist-review-prediction" class="btn btn-primary" target="_blank">View on GitHub</a>
+                <a href="https://github.com/emmabiee/olist-review-prediction/blob/main/eda.ipynb" class="btn btn-outline" target="_blank">View the EDA Notebook</a>
+                <a href="../index.html" class="btn btn-outline">Back to Portfolio</a>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>Emma Poh — GA Data Analytics Immersive, 2026</p>
+        </div>
+    </footer>
+
+</body>
+</html>

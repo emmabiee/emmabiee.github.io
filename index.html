@@ -157,6 +157,11 @@
         }
         .project-card.elections .card-image .emoji-icon { opacity: 0.8; }
         .project-card.elections .tag { background: #fce4ec; color: #B71C1C; }
+        .project-card.olist .card-image {
+            background: linear-gradient(135deg, #0f766e, #14b8a6);
+        }
+        .project-card.olist .card-image .emoji-icon { opacity: 0.8; }
+        .project-card.olist .tag { background: #ccfbf1; color: #0f766e; }
         .card-body { padding: 24px; }
         .card-body h3 {
             font-size: 1.2rem; font-weight: 600; margin-bottom: 8px;
@@ -414,6 +419,27 @@
                             <a href="projects/us-elections.html">&#128196; Details</a>
                             <a href="projects/elections-dashboard.html">&#128202; Dashboard</a>
                             <a href="https://github.com/emmabiee/us-presidential-elections" target="_blank">&#128187; Repository</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project 6: Olist Negative-Review Prediction -->
+                <div class="project-card olist">
+                    <div class="card-image">
+                        <span class="emoji-icon">&#11088;</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>Olist Negative-Review Prediction</h3>
+                        <p>Machine learning early-warning system predicting which Olist e-commerce orders will receive a negative (1&ndash;2 star) review. Achieved ROC-AUC 0.77 across 95,832 orders with a leakage-free, config-driven pipeline that flags at-risk orders for proactive intervention.</p>
+                        <div class="card-tags">
+                            <span class="tag">Python</span>
+                            <span class="tag">scikit-learn</span>
+                            <span class="tag">Pandas</span>
+                            <span class="tag">SQLite</span>
+                        </div>
+                        <div class="card-links">
+                            <a href="projects/olist-review-prediction.html">&#128196; Details</a>
+                            <a href="https://github.com/emmabiee/olist-review-prediction" target="_blank">&#128187; Repository</a>
                         </div>
                     </div>
                 </div>
